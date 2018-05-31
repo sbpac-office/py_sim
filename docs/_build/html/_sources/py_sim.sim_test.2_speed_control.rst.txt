@@ -1,0 +1,7 @@
+py\_sim.sim\_test.2\_speed\_control module
+==========================================
+
+.. automodule:: py_sim.sim_test.2_speed_control
+    :members:
+    :undoc-members:
+    :show-inheritance:

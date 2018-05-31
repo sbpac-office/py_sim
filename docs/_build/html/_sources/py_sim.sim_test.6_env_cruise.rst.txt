@@ -1,0 +1,7 @@
+py\_sim.sim\_test.6\_env\_cruise module
+=======================================
+
+.. automodule:: py_sim.sim_test.6_env_cruise
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -1,0 +1,418 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Simulation model : Environment &mdash; py_sim  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="py_sim type definition" href="py_sim.type_def.html" />
+    <link rel="prev" title="Simulation model : Maneuver" href="py_sim.model_maneuver.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> py_sim
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="py_sim.html">py_sim package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="py_sim.html#py-sim-pakcage-overview">py_sim pakcage overview</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="py_sim.html#simulation-models">Simulation models</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="py_sim.model_vehicle.html">Simulation model : Vehicle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="py_sim.model_maneuver.html">Simulation model : Maneuver</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Simulation model : Environment</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#author">Author</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#update">Update</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="py_sim.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_sim.html#subpackages">Subpackages</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">py_sim</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="py_sim.html">py_sim package</a> &raquo;</li>
+        
+      <li>Simulation model : Environment</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/py_sim.model_environment.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <span class="target" id="module-py_sim.model_environment"></span><div class="section" id="simulation-model-environment">
+<h1>Simulation model : Environment<a class="headerlink" href="#simulation-model-environment" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="author">
+<h2>Author<a class="headerlink" href="#author" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>kyunghan &lt;<a class="reference external" href="mailto:kyunghah&#46;min&#37;&#52;&#48;gmail&#46;com">kyunghah<span>&#46;</span>min<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;</li>
+</ul>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Environment model</li>
+</ul>
+</div>
+<div class="section" id="update">
+<h2>Update<a class="headerlink" href="#update" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>[18/05/31] - Initial release - kyunghan</li>
+</ul>
+<dl class="class">
+<dt id="py_sim.model_environment.Mod_Env">
+<em class="property">class </em><code class="descclassname">py_sim.model_environment.</code><code class="descname">Mod_Env</code><span class="sig-paren">(</span><em>road_array_x_in</em>, <em>road_array_y_in</em>, <em>start_road_len=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_sim/model_environment.html#Mod_Env"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#py_sim.model_environment.Mod_Env" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Module description here</p>
+<dl class="docutils">
+<dt>ConfigVariables:</dt>
+<dd><ul class="first last simple">
+<li>conf_rw_wheel</li>
+<li>conf_jw_body</li>
+<li>conf_brk_coef</li>
+<li>conf_acc_coef</li>
+<li>conf_veh_len</li>
+<li>…</li>
+</ul>
+</dd>
+<dt>Submodules:</dt>
+<dd><ul class="first last simple">
+<li>Body_config:</li>
+<li>Dyn_config:</li>
+<li>Lon_driven_in:</li>
+<li>…</li>
+</ul>
+</dd>
+<dt>Operation:</dt>
+<dd><p class="first">Description operation here:</p>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span>!!!Make operation diagram here!!!
+# Module_name(in//out)
+Motor_control(t_mot, w_mot // des_torque)
+    &gt;&gt; Motor_driven(t_mot, w_mot // v_mot)
+        &gt;&gt; Motor_elec_dynamics, Motor_mech_dynamics, Drive_shaft_dynamics
+    &gt;&gt; Motor_torque_system(v_mot // des_torque)
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="method">
+<dt id="py_sim.model_environment.Mod_Env.Obj_add">
+<code class="descname">Obj_add</code><span class="sig-paren">(</span><em>object_in</em>, <em>object_param_in</em>, <em>object_s_location</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_sim/model_environment.html#Mod_Env.Obj_add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#py_sim.model_environment.Mod_Env.Obj_add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function overview here</p>
+<p>Functional description</p>
+<p>Code example wirght follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">w_mot</span><span class="p">,</span> <span class="n">t_mot</span><span class="p">,</span> <span class="n">t_load</span><span class="p">]</span> <span class="o">=</span> <span class="n">Motor_control</span><span class="p">(</span><span class="n">t_mot_des</span><span class="p">)</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>Input parameters here</li>
+<li>t_mot_des:</li>
+<li>w_shaft:</li>
+<li>…</li>
+</ul>
+</dd>
+<dt>returns:</dt>
+<dd><ul class="first last simple">
+<li>Return of function here</li>
+<li>w_mot: motor rotational speed [rad/s]</li>
+<li>t_load: load torque from body model [Nm]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="py_sim.model_environment.Mod_Env.Road_config">
+<code class="descname">Road_config</code><span class="sig-paren">(</span><em>start_road_len=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_sim/model_environment.html#Mod_Env.Road_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#py_sim.model_environment.Mod_Env.Road_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function overview here</p>
+<p>Functional description</p>
+<p>Code example wirght follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">w_mot</span><span class="p">,</span> <span class="n">t_mot</span><span class="p">,</span> <span class="n">t_load</span><span class="p">]</span> <span class="o">=</span> <span class="n">Motor_control</span><span class="p">(</span><span class="n">t_mot_des</span><span class="p">)</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>Input parameters here</li>
+<li>t_mot_des:</li>
+<li>w_shaft:</li>
+<li>…</li>
+</ul>
+</dd>
+<dt>returns:</dt>
+<dd><ul class="first last simple">
+<li>Return of function here</li>
+<li>w_mot: motor rotational speed [rad/s]</li>
+<li>t_load: load torque from body model [Nm]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="py_sim.model_environment.Mod_Env.Road_curve_def">
+<code class="descname">Road_curve_def</code><span class="sig-paren">(</span><em>road_array_x_in</em>, <em>road_array_y_in</em>, <em>loc_env_road_s</em>, <em>conf_curve_val=0.001</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_sim/model_environment.html#Mod_Env.Road_curve_def"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#py_sim.model_environment.Mod_Env.Road_curve_def" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function overview here</p>
+<p>Functional description</p>
+<p>Code example wirght follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">w_mot</span><span class="p">,</span> <span class="n">t_mot</span><span class="p">,</span> <span class="n">t_load</span><span class="p">]</span> <span class="o">=</span> <span class="n">Motor_control</span><span class="p">(</span><span class="n">t_mot_des</span><span class="p">)</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>Input parameters here</li>
+<li>t_mot_des:</li>
+<li>w_shaft:</li>
+<li>…</li>
+</ul>
+</dd>
+<dt>returns:</dt>
+<dd><ul class="first last simple">
+<li>Return of function here</li>
+<li>w_mot: motor rotational speed [rad/s]</li>
+<li>t_load: load torque from body model [Nm]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="py_sim.model_environment.Mod_Env.Vehicle_init_config">
+<code class="descname">Vehicle_init_config</code><span class="sig-paren">(</span><em>veh_mod</em>, <em>road_index=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_sim/model_environment.html#Mod_Env.Vehicle_init_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#py_sim.model_environment.Mod_Env.Vehicle_init_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function overview here</p>
+<p>Functional description</p>
+<p>Code example wirght follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">w_mot</span><span class="p">,</span> <span class="n">t_mot</span><span class="p">,</span> <span class="n">t_load</span><span class="p">]</span> <span class="o">=</span> <span class="n">Motor_control</span><span class="p">(</span><span class="n">t_mot_des</span><span class="p">)</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>Input parameters here</li>
+<li>t_mot_des:</li>
+<li>w_shaft:</li>
+<li>…</li>
+</ul>
+</dd>
+<dt>returns:</dt>
+<dd><ul class="first last simple">
+<li>Return of function here</li>
+<li>w_mot: motor rotational speed [rad/s]</li>
+<li>t_load: load torque from body model [Nm]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="data">
+<dt id="py_sim.model_environment.Ts">
+<code class="descclassname">py_sim.model_environment.</code><code class="descname">Ts</code><em class="property"> = 0.01</em><a class="headerlink" href="#py_sim.model_environment.Ts" title="Permalink to this definition">¶</a></dt>
+<dd><p>global vairable: simulation sampling timeself.</p>
+<p>you can declare other sampling time in application as vairable <code class="docutils literal notranslate"><span class="pre">Ts</span></code></p>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="py_sim.type_def.html" class="btn btn-neutral float-right" title="py_sim type definition" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="py_sim.model_maneuver.html" class="btn btn-neutral" title="Simulation model : Maneuver" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, ACELab.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            LANGUAGE:'en',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

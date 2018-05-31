@@ -1,0 +1,279 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>py_sim.sim_test.aa &mdash; py_sim  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> py_sim
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../py_sim.html">py_sim package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">py_sim</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../py_sim.html">py_sim</a> &raquo;</li>
+        
+      <li>py_sim.sim_test.aa</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for py_sim.sim_test.aa</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    My Module</span>
+<span class="sd">    ~~~~~~~~~</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Math"><a class="viewcode-back" href="../../../py_sim.sim_test.aa.html#py_sim.sim_test.aa.Math">[docs]</a><span class="k">class</span> <span class="nc">Math</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Test sourceself.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    docstring : :obj:`str` or :obj:`list` of :obj:`str`</span>
+<span class="sd">        The docstring to parse, given either as a string or split into</span>
+<span class="sd">        individual lines.</span>
+<span class="sd">    config: :obj:`sphinxcontrib.napoleon.Config` or :obj:`sphinx.config.Config`</span>
+<span class="sd">        The configuration settings to use. If not given, defaults to the</span>
+<span class="sd">        config object on `app`; or if `app` is not given defaults to the</span>
+<span class="sd">        a new :class:`sphinxcontrib.napoleon.Config` object.</span>
+
+
+<span class="sd">    Other Parameters</span>
+<span class="sd">    ----------------</span>
+<span class="sd">    app : :class:`sphinx.application.Sphinx`, optional</span>
+<span class="sd">        Application object representing the Sphinx process.</span>
+<span class="sd">    what : :obj:`str`, optional</span>
+<span class="sd">        A string specifying the type of the object to which the docstring</span>
+<span class="sd">        belongs. Valid values: &quot;module&quot;, &quot;class&quot;, &quot;exception&quot;, &quot;function&quot;,</span>
+<span class="sd">        &quot;method&quot;, &quot;attribute&quot;.</span>
+<span class="sd">    name : :obj:`str`, optional</span>
+<span class="sd">        The fully qualified name of the object.</span>
+<span class="sd">    obj : module, class, exception, function, method, or attribute</span>
+<span class="sd">        The object to which the docstring belongs.</span>
+<span class="sd">    options : :class:`sphinx.ext.autodoc.Options`, optional</span>
+<span class="sd">        The options given to the directive: an object with attributes</span>
+<span class="sd">        inherited_members, undoc_members, show_inheritance and noindex that</span>
+<span class="sd">        are True if the flag option of same name was given to the auto</span>
+<span class="sd">        directive.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    app : :class:`sphinx.application.Sphinx`, optional</span>
+<span class="sd">        Application object representing the Sphinx process.</span>
+<span class="sd">    what : :obj:`str`, optional</span>
+<span class="sd">        A string specifying the type of the object to which the docstring</span>
+<span class="sd">        belongs. Valid values: &quot;module&quot;, &quot;class&quot;, &quot;exception&quot;, &quot;function&quot;,</span>
+<span class="sd">        &quot;method&quot;, &quot;attribute&quot;.</span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_a</span> <span class="o">=</span> <span class="n">a</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_b</span> <span class="o">=</span> <span class="n">b</span>
+
+<div class="viewcode-block" id="Math.sum"><a class="viewcode-back" href="../../../py_sim.sim_test.aa.html#py_sim.sim_test.aa.Math.sum">[docs]</a>    <span class="k">def</span> <span class="nf">sum</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;미리 입력받은 a와 b값을 더한 결과를 반환합니다.</span>
+<span class="sd">        예제:</span>
+<span class="sd">            다음과 같이 사용하세요:</span>
+<span class="sd">            &gt;&gt;&gt; Math(1, 2).add()</span>
+<span class="sd">            3</span>
+
+<span class="sd">        :returns int: a + b에 대한 결과</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_b</span></div>
+
+<div class="viewcode-block" id="Math.subtract"><a class="viewcode-back" href="../../../py_sim.sim_test.aa.html#py_sim.sim_test.aa.Math.subtract">[docs]</a>    <span class="k">def</span> <span class="nf">subtract</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;미리 입력받은 a와 b값을 뺀 결과를 반환합니다.</span>
+<span class="sd">        예제:</span>
+<span class="sd">            다음과 같이 사용하세요:</span>
+<span class="sd">            &gt;&gt;&gt; Math(2, 1).subtract()</span>
+<span class="sd">            1</span>
+<span class="sd">        :returns int: a - b에 대한 결과</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_b</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, ACELab.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'',
+            LANGUAGE:'en',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

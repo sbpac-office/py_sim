@@ -1,0 +1,777 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>py_sim.model_vehicle &mdash; py_sim  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> py_sim
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../py_sim.html">py_sim package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">py_sim</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../py_sim.html">py_sim</a> &raquo;</li>
+        
+      <li>py_sim.model_vehicle</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for py_sim.model_vehicle</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Simulation model : Vehicle</span>
+<span class="sd">==============================================================</span>
+
+<span class="sd">Author</span>
+<span class="sd">~~~~~~~~~~~~~</span>
+<span class="sd">* kyunghan &lt;kyunghah.min@gmail.com&gt;</span>
+
+<span class="sd">Description</span>
+<span class="sd">~~~~~~~~~~~~~</span>
+<span class="sd">* Powertrain model</span>
+<span class="sd">* Body model</span>
+<span class="sd">* Vehicle model</span>
+
+<span class="sd">Update</span>
+<span class="sd">~~~~~~~~~~~~~</span>
+<span class="sd">* [18/05/31] - Initial release - kyunghan</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import python lib modules</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">pi</span><span class="p">,</span> <span class="n">sin</span><span class="p">,</span> <span class="n">cos</span><span class="p">,</span> <span class="n">atan</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="k">import</span> <span class="n">distance</span> <span class="k">as</span> <span class="n">dist_calc</span>
+<span class="c1"># import package modules</span>
+<span class="kn">from</span> <span class="nn">utilities</span> <span class="k">import</span> <span class="n">Calc_Radius</span><span class="p">,</span> <span class="n">Filt_MovAvg</span><span class="p">,</span> <span class="n">Calc_PrDis</span>
+<span class="kn">from</span> <span class="nn">type_def</span> <span class="k">import</span> <span class="n">type_pid_controller</span><span class="p">,</span> <span class="n">type_drvstate</span><span class="p">,</span> <span class="n">type_objective</span>
+<span class="c1"># import config data modules</span>
+
+<span class="c1"># simulation sampling time</span>
+<span class="n">Ts</span> <span class="o">=</span> <span class="mf">0.01</span>
+<span class="sd">&quot;&quot;&quot;global vairable: simulation sampling timeself.</span>
+
+<span class="sd">you can declare other sampling time in application as vairable ``Ts``</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Mod_PowerTrain"><a class="viewcode-back" href="../../py_sim.model_vehicle.html#py_sim.model_vehicle.Mod_PowerTrain">[docs]</a><span class="k">class</span> <span class="nc">Mod_PowerTrain</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Electric vhielc powertrain model</span>
+
+<span class="sd">    ConfigVariables:</span>
+<span class="sd">        * conf_rm_mot: motor registance [ohm].</span>
+<span class="sd">        * conf_lm_mot: motor electric induction [Hennry]</span>
+<span class="sd">        * conf_kb_mot: motor back emp coeff [-]</span>
+<span class="sd">        * conf_kt_mot: motor torque constant [Nm/A]</span>
+<span class="sd">        * conf_jm_mot: motor inertia [kg*m^2/rad..?]</span>
+<span class="sd">        * conf_trq_gain: torque efficiency [-]</span>
+<span class="sd">        * conf_rd_gear: reduction gear ratio [-]</span>
+<span class="sd">        * conf_ks_shaft: shaft stifness [Nm/rad]</span>
+
+<span class="sd">    Submodules:</span>
+<span class="sd">        * Motor_config: set config variables</span>
+<span class="sd">        * DriveTrain_config: set config variables</span>
+<span class="sd">        * Motor_driven: Driven motor</span>
+<span class="sd">        * Motor_control: Control motor torque</span>
+<span class="sd">        * Motor_elect_dynamics: 1st order dynamics for motor electric system</span>
+<span class="sd">        * Motor_mech_dynamics: 1st order dynamics for motor mechanical system</span>
+<span class="sd">        * Drive_shaft_dynamics: 1st order dynamics for shaft rotational system</span>
+<span class="sd">        * Motor_torque_system: set motor voltage</span>
+
+<span class="sd">    Operation:</span>
+<span class="sd">        Motor_control module can control the motor to desired torque::</span>
+
+<span class="sd">            # Module_name(in//out)</span>
+<span class="sd">            Motor_control(t_mot, w_mot, t_load // des_torque)</span>
+<span class="sd">                &gt;&gt; Motor_driven(t_mot, w_mot, t_load // v_mot)</span>
+<span class="sd">                    &gt;&gt; Motor_elec_dynamics, Motor_mech_dynamics, Drive_shaft_dynamics</span>
+<span class="sd">                &gt;&gt; Motor_torque_system(v_mot // des_torque)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w_mot</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t_mot</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t_load</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Motor_config</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DriveTrain_config</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()[</span><span class="s1">&#39;Ts&#39;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="Mod_PowerTrain.Motor_config"><a class="viewcode-back" href="../../py_sim.model_vehicle.html#py_sim.model_vehicle.Mod_PowerTrain.Motor_config">[docs]</a>    <span class="k">def</span> <span class="nf">Motor_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conf_rm</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">conf_lm</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">conf_kb</span> <span class="o">=</span> <span class="mf">6.5e-4</span><span class="p">,</span> <span class="n">conf_kt</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">conf_jm</span> <span class="o">=</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="n">conf_trq_gain</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Motor parameter configuration</span>
+
+<span class="sd">        Parameters not specified are declared as default values</span>
+
+<span class="sd">        If you want set a specific parameter don&#39;t use this function,</span>
+<span class="sd">        just type::</span>
+
+<span class="sd">            &gt;&gt;&gt; Mod_PowerTrain.conf_rm_mot = 0.2</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            Motor parameter values, default values are setted</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_rm_mot</span> <span class="o">=</span> <span class="n">conf_rm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_lm_mot</span> <span class="o">=</span> <span class="n">conf_lm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_kb_mot</span> <span class="o">=</span> <span class="n">conf_kb</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_kt_mot</span> <span class="o">=</span> <span class="n">conf_kt</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_jm_mot</span> <span class="o">=</span> <span class="n">conf_jm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_trq_gain</span> <span class="o">=</span> <span class="n">conf_trq_gain</span></div>
+
+
+<div class="viewcode-block" id="Mod_PowerTrain.DriveTrain_config"><a class="viewcode-back" href="../../py_sim.model_vehicle.html#py_sim.model_vehicle.Mod_PowerTrain.DriveTrain_config">[docs]</a>    <span class="k">def</span> <span class="nf">DriveTrain_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conf_rd</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span> <span class="n">conf_ks</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Drivetrain parameter configuration</span>
+
+<span class="sd">        Parameters not specified are declared as default values</span>
+
+<span class="sd">        If you want set a specific parameter don&#39;t use this function,</span>
+<span class="sd">        just type::</span>
+
+<span class="sd">            &gt;&gt;&gt; Mod_PowerTrain.conf_rd_gear = 7</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * Driver shaft parameter values, default values are setted</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_rd_gear</span> <span class="o">=</span> <span class="n">conf_rd</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_ks_shaft</span> <span class="o">=</span> <span class="n">conf_ks</span></div>
+
+<div class="viewcode-block" id="Mod_PowerTrain.Motor_driven"><a class="viewcode-back" href="../../py_sim.model_vehicle.html#py_sim.model_vehicle.Mod_PowerTrain.Motor_driven">[docs]</a>    <span class="k">def</span> <span class="nf">Motor_driven</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v_in</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">w_shaft</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Motor driven function</span>
+
+<span class="sd">        Generate motor output(torque, speed) and load torque according to input voltage and wheel speed (shaft speed = wheel speed)</span>
+
+<span class="sd">        Contain theree modules ``Elecic dynamics``, ``Menahicla dynamics``, ``Shaft dynamics``</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * v_in: motor input voltage [V]</span>
+<span class="sd">            * w_shaft: rotational speed of drive shaft from body model [rad/s]</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            * t_mot: motor torque [Nm]</span>
+<span class="sd">            * w_mot: motor rotational speed [rad/s]</span>
+<span class="sd">            * t_load: load torque from body model [Nm]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Elec motor model: Motor torque --&gt; Mech motor model: Motor speed --&gt; Drive shaft model: Load torque</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t_mot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Motor_elec_dynamics</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">t_mot</span><span class="p">,</span> <span class="n">v_in</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_mot</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w_mot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Motor_mech_dynamics</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">w_mot</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_mot</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_load</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t_load</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Drive_shaft_dynamics</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">t_load</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_mot</span><span class="p">,</span> <span class="n">w_shaft</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">w_mot</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_mot</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_load</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Mod_PowerTrain.Motor_control"><a class="viewcode-back" href="../../py_sim.model_vehicle.html#py_sim.model_vehicle.Mod_PowerTrain.Motor_control">[docs]</a>    <span class="k">def</span> <span class="nf">Motor_control</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t_mot_des</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">w_shaft</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Function overview here</span>
+
+<span class="sd">        Functional description</span>
+
+<span class="sd">        Code example wirght follows::</span>
+
+<span class="sd">            &gt;&gt;&gt; [w_mot, t_mot, t_load] = Motor_control(t_mot_des)</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * Input parameters here</span>
+<span class="sd">            * t_mot_des:</span>
+<span class="sd">            * w_shaft:</span>
+<span class="sd">            * ...</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            * Return of function here</span>
+<span class="sd">            * w_mot: motor rotational speed [rad/s]</span>
+<span class="sd">            * t_load: load torque from body model [Nm]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">v_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Motor_torque_system</span><span class="p">(</span><span class="n">t_mot_des</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Motor_driven</span><span class="p">(</span><span class="n">v_in</span><span class="p">,</span> <span class="n">w_shaft</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">w_mot</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_mot</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_load</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Mod_PowerTrain.Motor_elec_dynamics"><a class="viewcode-back" href="../../py_sim.model_vehicle.html#py_sim.model_vehicle.Mod_PowerTrain.Motor_elec_dynamics">[docs]</a>    <span class="k">def</span> <span class="nf">Motor_elec_dynamics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t_mot</span><span class="p">,</span> <span class="n">v_in</span><span class="p">,</span> <span class="n">w_mot</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Function overview here</span>
+
+<span class="sd">        Functional description</span>
+
+<span class="sd">        Code example wirght follows::</span>
+
+<span class="sd">            &gt;&gt;&gt; [w_mot, t_mot, t_load] = Motor_control(t_mot_des)</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * Input parameters here</span>
+<span class="sd">            * t_mot_des:</span>
+<span class="sd">            * w_shaft:</span>
+<span class="sd">            * ...</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            * Return of function here</span>
+<span class="sd">            * w_mot: motor rotational speed [rad/s]</span>
+<span class="sd">            * t_load: load torque from body model [Nm]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Motor torque calculation</span>
+        <span class="n">t_mot</span> <span class="o">=</span> <span class="n">t_mot</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_rm_mot</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_lm_mot</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span><span class="p">)</span> \
+        <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_kt_mot</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_lm_mot</span> <span class="o">*</span> <span class="p">(</span><span class="n">v_in</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_kb_mot</span> <span class="o">*</span> <span class="n">w_mot</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">t_mot</span></div>
+
+<div class="viewcode-block" id="Mod_PowerTrain.Motor_mech_dynamics"><a class="viewcode-back" href="../../py_sim.model_vehicle.html#py_sim.model_vehicle.Mod_PowerTrain.Motor_mech_dynamics">[docs]</a>    <span class="k">def</span> <span class="nf">Motor_mech_dynamics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w_mot</span><span class="p">,</span> <span class="n">t_mot</span><span class="p">,</span> <span class="n">t_load</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Function overview here</span>
+
+<span class="sd">        Functional description</span>
+
+<span class="sd">        Code example wirght follows::</span>
+
+<span class="sd">            &gt;&gt;&gt; [w_mot, t_mot, t_load] = Motor_control(t_mot_des)</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * Input parameters here</span>
+<span class="sd">            * t_mot_des:</span>
+<span class="sd">            * w_shaft:</span>
+<span class="sd">            * ...</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            * Return of function here</span>
+<span class="sd">            * w_mot: motor rotational speed [rad/s]</span>
+<span class="sd">            * t_load: load torque from body model [Nm]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Motor speed calculation</span>
+        <span class="n">w_mot</span> <span class="o">=</span>  <span class="n">w_mot</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span><span class="o">*</span><span class="p">(</span><span class="n">t_mot</span> <span class="o">-</span> <span class="n">t_load</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_rd_gear</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_jm_mot</span>
+        <span class="k">return</span> <span class="n">w_mot</span></div>
+
+<div class="viewcode-block" id="Mod_PowerTrain.Drive_shaft_dynamics"><a class="viewcode-back" href="../../py_sim.model_vehicle.html#py_sim.model_vehicle.Mod_PowerTrain.Drive_shaft_dynamics">[docs]</a>    <span class="k">def</span> <span class="nf">Drive_shaft_dynamics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t_load</span><span class="p">,</span> <span class="n">w_mot</span><span class="p">,</span> <span class="n">w_shaft</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Function overview here</span>
+
+<span class="sd">        Functional description</span>
+
+<span class="sd">        Code example wirght follows::</span>
+
+<span class="sd">            &gt;&gt;&gt; [w_mot, t_mot, t_load] = Motor_control(t_mot_des)</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * Input parameters here</span>
+<span class="sd">            * t_mot_des:</span>
+<span class="sd">            * w_shaft:</span>
+<span class="sd">            * ...</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            * Return of function here</span>
+<span class="sd">            * w_mot: motor rotational speed [rad/s]</span>
+<span class="sd">            * t_load: load torque from body model [Nm]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">t_load</span> <span class="o">=</span> <span class="n">t_load</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_ks_shaft</span><span class="o">*</span><span class="p">(</span><span class="n">w_mot</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_rd_gear</span> <span class="o">-</span> <span class="n">w_shaft</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">t_load</span></div>
+
+<div class="viewcode-block" id="Mod_PowerTrain.Motor_torque_system"><a class="viewcode-back" href="../../py_sim.model_vehicle.html#py_sim.model_vehicle.Mod_PowerTrain.Motor_torque_system">[docs]</a>    <span class="k">def</span> <span class="nf">Motor_torque_system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t_mot_des</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Function overview here</span>
+
+<span class="sd">        Functional description</span>
+
+<span class="sd">        Code example wirght follows::</span>
+
+<span class="sd">            &gt;&gt;&gt; [w_mot, t_mot, t_load] = Motor_control(t_mot_des)</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * Input parameters here</span>
+<span class="sd">            * t_mot_des:</span>
+<span class="sd">            * w_shaft:</span>
+<span class="sd">            * ...</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            * Return of function here</span>
+<span class="sd">            * w_mot: motor rotational speed [rad/s]</span>
+<span class="sd">            * t_load: load torque from body model [Nm]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">v_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_trq_gain</span> <span class="o">*</span> <span class="n">t_mot_des</span>
+        <span class="k">return</span> <span class="n">v_in</span></div></div>
+<div class="viewcode-block" id="Mod_Body"><a class="viewcode-back" href="../../py_sim.model_vehicle.html#py_sim.model_vehicle.Mod_Body">[docs]</a><span class="k">class</span> <span class="nc">Mod_Body</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Module description here</span>
+
+<span class="sd">    ConfigVariables:</span>
+<span class="sd">        * conf_rw_wheel</span>
+<span class="sd">        * conf_jw_body</span>
+<span class="sd">        * conf_brk_coef</span>
+<span class="sd">        * conf_acc_coef</span>
+<span class="sd">        * conf_veh_len</span>
+<span class="sd">        * ...</span>
+
+<span class="sd">    Submodules:</span>
+<span class="sd">        * Body_config:</span>
+<span class="sd">        * Dyn_config:</span>
+<span class="sd">        * Lon_driven_in:</span>
+<span class="sd">        * ...</span>
+
+<span class="sd">    Operation:</span>
+<span class="sd">        Description operation here::</span>
+
+<span class="sd">            !!!Make operation diagram here!!!</span>
+<span class="sd">            # Module_name(in//out)</span>
+<span class="sd">            Motor_control(t_mot, w_mot // des_torque)</span>
+<span class="sd">                &gt;&gt; Motor_driven(t_mot, w_mot // v_mot)</span>
+<span class="sd">                    &gt;&gt; Motor_elec_dynamics, Motor_mech_dynamics, Drive_shaft_dynamics</span>
+<span class="sd">                &gt;&gt; Motor_torque_system(v_mot // des_torque)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w_wheel</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vel_veh</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">the_wheel</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t_brake</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t_mot_des</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t_drag</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Body_config</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Dyn_config</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()[</span><span class="s1">&#39;Ts&#39;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="Mod_Body.Body_config"><a class="viewcode-back" href="../../py_sim.model_vehicle.html#py_sim.model_vehicle.Mod_Body.Body_config">[docs]</a>    <span class="k">def</span> <span class="nf">Body_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conf_rw_wheel</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">,</span> <span class="n">conf_jw_body</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">conf_brk_coef</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">conf_acc_coef</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">conf_veh_len</span> <span class="o">=</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Function overview here</span>
+
+<span class="sd">        Functional description</span>
+
+<span class="sd">        Code example wirght follows::</span>
+
+<span class="sd">            &gt;&gt;&gt; [w_mot, t_mot, t_load] = Motor_control(t_mot_des)</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * Input parameters here</span>
+<span class="sd">            * t_mot_des:</span>
+<span class="sd">            * w_shaft:</span>
+<span class="sd">            * ...</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            * Return of function here</span>
+<span class="sd">            * w_mot: motor rotational speed [rad/s]</span>
+<span class="sd">            * t_load: load torque from body model [Nm]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_rw_wheel</span> <span class="o">=</span> <span class="n">conf_rw_wheel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_jw_body</span> <span class="o">=</span> <span class="n">conf_jw_body</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_brk_coef</span> <span class="o">=</span> <span class="n">conf_brk_coef</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_acc_coef</span> <span class="o">=</span> <span class="n">conf_acc_coef</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_veh_len</span> <span class="o">=</span> <span class="n">conf_veh_len</span></div>
+
+<div class="viewcode-block" id="Mod_Body.Dyn_config"><a class="viewcode-back" href="../../py_sim.model_vehicle.html#py_sim.model_vehicle.Mod_Body.Dyn_config">[docs]</a>    <span class="k">def</span> <span class="nf">Dyn_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conf_airdrag</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="n">conf_add_weight</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Function overview here</span>
+
+<span class="sd">        Functional description</span>
+
+<span class="sd">        Code example wirght follows::</span>
+
+<span class="sd">            &gt;&gt;&gt; [w_mot, t_mot, t_load] = Motor_control(t_mot_des)</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * Input parameters here</span>
+<span class="sd">            * t_mot_des:</span>
+<span class="sd">            * w_shaft:</span>
+<span class="sd">            * ...</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            * Return of function here</span>
+<span class="sd">            * w_mot: motor rotational speed [rad/s]</span>
+<span class="sd">            * t_load: load torque from body model [Nm]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_drag_lon</span> <span class="o">=</span> <span class="n">conf_airdrag</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_weight_veh</span> <span class="o">=</span> <span class="n">conf_add_weight</span></div>
+
+<div class="viewcode-block" id="Mod_Body.Lon_driven_in"><a class="viewcode-back" href="../../py_sim.model_vehicle.html#py_sim.model_vehicle.Mod_Body.Lon_driven_in">[docs]</a>    <span class="k">def</span> <span class="nf">Lon_driven_in</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">u_acc</span><span class="p">,</span> <span class="n">u_brake</span><span class="p">,</span> <span class="n">veh_vel</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Function overview here</span>
+
+<span class="sd">        Functional description</span>
+
+<span class="sd">        Code example wirght follows::</span>
+
+<span class="sd">            &gt;&gt;&gt; [w_mot, t_mot, t_load] = Motor_control(t_mot_des)</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * Input parameters here</span>
+<span class="sd">            * t_mot_des:</span>
+<span class="sd">            * w_shaft:</span>
+<span class="sd">            * ...</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            * Return of function here</span>
+<span class="sd">            * w_mot: motor rotational speed [rad/s]</span>
+<span class="sd">            * t_load: load torque from body model [Nm]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t_brake</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Brake_system</span><span class="p">(</span><span class="n">u_brake</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t_mot_des</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Acc_system</span><span class="p">(</span><span class="n">u_acc</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t_drag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Drag_system</span><span class="p">(</span><span class="n">veh_vel</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_mot_des</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_brake</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_drag</span></div>
+
+<div class="viewcode-block" id="Mod_Body.Lon_driven_out"><a class="viewcode-back" href="../../py_sim.model_vehicle.html#py_sim.model_vehicle.Mod_Body.Lon_driven_out">[docs]</a>    <span class="k">def</span> <span class="nf">Lon_driven_out</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">t_load</span><span class="p">,</span> <span class="n">t_brake</span><span class="p">,</span> <span class="n">t_drag</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Function overview here</span>
+
+<span class="sd">        Functional description</span>
+
+<span class="sd">        Code example wirght follows::</span>
+
+<span class="sd">            &gt;&gt;&gt; [w_mot, t_mot, t_load] = Motor_control(t_mot_des)</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * Input parameters here</span>
+<span class="sd">            * t_mot_des:</span>
+<span class="sd">            * w_shaft:</span>
+<span class="sd">            * ...</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            * Return of function here</span>
+<span class="sd">            * w_mot: motor rotational speed [rad/s]</span>
+<span class="sd">            * t_load: load torque from body model [Nm]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w_wheel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Tire_dynamics</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">w_wheel</span><span class="p">,</span> <span class="n">t_load</span><span class="p">,</span> <span class="n">t_brake</span><span class="p">,</span> <span class="n">t_drag</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vel_veh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_wheel</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_rw_wheel</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">w_wheel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vel_veh</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Mod_Body.Lat_driven"><a class="viewcode-back" href="../../py_sim.model_vehicle.html#py_sim.model_vehicle.Mod_Body.Lat_driven">[docs]</a>    <span class="k">def</span> <span class="nf">Lat_driven</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">u_steer</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Function overview here</span>
+
+<span class="sd">        Functional description</span>
+
+<span class="sd">        Code example wirght follows::</span>
+
+<span class="sd">            &gt;&gt;&gt; [w_mot, t_mot, t_load] = Motor_control(t_mot_des)</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * Input parameters here</span>
+<span class="sd">            * t_mot_des:</span>
+<span class="sd">            * w_shaft:</span>
+<span class="sd">            * ...</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            * Return of function here</span>
+<span class="sd">            * w_mot: motor rotational speed [rad/s]</span>
+<span class="sd">            * t_load: load torque from body model [Nm]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">the_wheel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Lat_dynamics</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">the_wheel</span><span class="p">,</span> <span class="n">u_steer</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">the_wheel</span></div>
+
+<div class="viewcode-block" id="Mod_Body.Lat_dynamics"><a class="viewcode-back" href="../../py_sim.model_vehicle.html#py_sim.model_vehicle.Mod_Body.Lat_dynamics">[docs]</a>    <span class="k">def</span> <span class="nf">Lat_dynamics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">the_wheel</span><span class="p">,</span> <span class="n">u_steer</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Function overview here</span>
+
+<span class="sd">        Functional description</span>
+
+<span class="sd">        Code example wirght follows::</span>
+
+<span class="sd">            &gt;&gt;&gt; [w_mot, t_mot, t_load] = Motor_control(t_mot_des)</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * Input parameters here</span>
+<span class="sd">            * t_mot_des:</span>
+<span class="sd">            * w_shaft:</span>
+<span class="sd">            * ...</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            * Return of function here</span>
+<span class="sd">            * w_mot: motor rotational speed [rad/s]</span>
+<span class="sd">            * t_load: load torque from body model [Nm]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">the_wheel</span> <span class="o">=</span> <span class="n">the_wheel</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span><span class="o">/</span><span class="mf">0.2</span><span class="o">*</span><span class="p">(</span><span class="n">u_steer</span> <span class="o">-</span> <span class="n">the_wheel</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">the_wheel</span></div>
+
+<div class="viewcode-block" id="Mod_Body.Tire_dynamics"><a class="viewcode-back" href="../../py_sim.model_vehicle.html#py_sim.model_vehicle.Mod_Body.Tire_dynamics">[docs]</a>    <span class="k">def</span> <span class="nf">Tire_dynamics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w_wheel</span><span class="p">,</span> <span class="n">t_load</span><span class="p">,</span> <span class="n">t_brake</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">t_drag</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Function overview here</span>
+
+<span class="sd">        Functional description</span>
+
+<span class="sd">        Code example wirght follows::</span>
+
+<span class="sd">            &gt;&gt;&gt; [w_mot, t_mot, t_load] = Motor_control(t_mot_des)</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * Input parameters here</span>
+<span class="sd">            * t_mot_des:</span>
+<span class="sd">            * w_shaft:</span>
+<span class="sd">            * ...</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            * Return of function here</span>
+<span class="sd">            * w_mot: motor rotational speed [rad/s]</span>
+<span class="sd">            * t_load: load torque from body model [Nm]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">w_wheel</span> <span class="o">=</span> <span class="n">w_wheel</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_jw_body</span><span class="o">*</span><span class="p">(</span><span class="n">t_load</span> <span class="o">-</span> <span class="n">t_drag</span> <span class="o">-</span> <span class="n">t_brake</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">w_wheel</span></div>
+
+<div class="viewcode-block" id="Mod_Body.Brake_system"><a class="viewcode-back" href="../../py_sim.model_vehicle.html#py_sim.model_vehicle.Mod_Body.Brake_system">[docs]</a>    <span class="k">def</span> <span class="nf">Brake_system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">u_brake</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_wheel</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">t_brake</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">t_brake</span> <span class="o">=</span> <span class="n">u_brake</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_brk_coef</span>
+        <span class="k">return</span> <span class="n">t_brake</span></div>
+
+<div class="viewcode-block" id="Mod_Body.Acc_system"><a class="viewcode-back" href="../../py_sim.model_vehicle.html#py_sim.model_vehicle.Mod_Body.Acc_system">[docs]</a>    <span class="k">def</span> <span class="nf">Acc_system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">u_acc</span><span class="p">):</span>
+        <span class="n">t_mot_des</span> <span class="o">=</span> <span class="n">u_acc</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_acc_coef</span>
+        <span class="k">return</span> <span class="n">t_mot_des</span></div>
+
+<div class="viewcode-block" id="Mod_Body.Drag_system"><a class="viewcode-back" href="../../py_sim.model_vehicle.html#py_sim.model_vehicle.Mod_Body.Drag_system">[docs]</a>    <span class="k">def</span> <span class="nf">Drag_system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">veh_vel</span><span class="p">):</span>
+        <span class="n">t_drag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_drag_lon</span> <span class="o">*</span> <span class="n">veh_vel</span>
+        <span class="k">if</span> <span class="n">t_drag</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">t_drag</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="n">t_drag</span></div></div>
+
+
+<div class="viewcode-block" id="Mod_Veh"><a class="viewcode-back" href="../../py_sim.model_vehicle.html#py_sim.model_vehicle.Mod_Veh">[docs]</a><span class="k">class</span> <span class="nc">Mod_Veh</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Module description here</span>
+
+<span class="sd">    ConfigVariables:</span>
+<span class="sd">        * conf_rw_wheel</span>
+<span class="sd">        * conf_jw_body</span>
+<span class="sd">        * conf_brk_coef</span>
+<span class="sd">        * conf_acc_coef</span>
+<span class="sd">        * conf_veh_len</span>
+<span class="sd">        * ...</span>
+
+<span class="sd">    Submodules:</span>
+<span class="sd">        * Body_config:</span>
+<span class="sd">        * Dyn_config:</span>
+<span class="sd">        * Lon_driven_in:</span>
+<span class="sd">        * ...</span>
+
+<span class="sd">    Initialization:</span>
+<span class="sd">        * Include ``powertrain``, ``body`` models</span>
+
+<span class="sd">    Operation:</span>
+<span class="sd">        Description operation here::</span>
+
+<span class="sd">            !!!Make operation diagram here!!!</span>
+<span class="sd">            # Module_name(in//out)</span>
+<span class="sd">            Motor_control(t_mot, w_mot // des_torque)</span>
+<span class="sd">                &gt;&gt; Motor_driven(t_mot, w_mot // v_mot)</span>
+<span class="sd">                    &gt;&gt; Motor_elec_dynamics, Motor_mech_dynamics, Drive_shaft_dynamics</span>
+<span class="sd">                &gt;&gt; Motor_torque_system(v_mot // des_torque)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">powertrain_model</span><span class="p">,</span><span class="n">body_model</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ModPower</span> <span class="o">=</span> <span class="n">powertrain_model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ModBody</span> <span class="o">=</span> <span class="n">body_model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()[</span><span class="s1">&#39;Ts&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Set_initState</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Mod_Veh.Set_initState"><a class="viewcode-back" href="../../py_sim.model_vehicle.html#py_sim.model_vehicle.Mod_Veh.Set_initState">[docs]</a>    <span class="k">def</span> <span class="nf">Set_initState</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_veh</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">y_veh</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">s_veh</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">n_veh</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">psi_veh</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos_x_veh</span> <span class="o">=</span> <span class="n">x_veh</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos_y_veh</span> <span class="o">=</span> <span class="n">y_veh</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos_s_veh</span> <span class="o">=</span> <span class="n">s_veh</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos_n_veh</span> <span class="o">=</span> <span class="n">n_veh</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">psi_veh</span> <span class="o">=</span> <span class="n">psi_veh</span></div>
+
+<div class="viewcode-block" id="Mod_Veh.Veh_driven"><a class="viewcode-back" href="../../py_sim.model_vehicle.html#py_sim.model_vehicle.Mod_Veh.Veh_driven">[docs]</a>    <span class="k">def</span> <span class="nf">Veh_driven</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">u_acc</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">u_brake</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">u_steer</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">t_load</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ModPower</span><span class="o">.</span><span class="n">t_load</span>
+        <span class="n">w_shaft</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ModBody</span><span class="o">.</span><span class="n">w_wheel</span>
+        <span class="n">veh_vel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ModBody</span><span class="o">.</span><span class="n">vel_veh</span>
+        <span class="c1"># Lateral motion</span>
+        <span class="n">the_wheel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ModBody</span><span class="o">.</span><span class="n">Lat_driven</span><span class="p">(</span><span class="n">u_steer</span><span class="p">)</span>
+        <span class="c1"># Longitudinal motion</span>
+        <span class="c1"># Body_Lon_in --&gt; Powertrain_Motor --&gt; Body_Lon_out</span>
+        <span class="p">[</span><span class="n">t_mot_des</span><span class="p">,</span> <span class="n">t_brake</span><span class="p">,</span> <span class="n">t_drag</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ModBody</span><span class="o">.</span><span class="n">Lon_driven_in</span><span class="p">(</span><span class="n">u_acc</span><span class="p">,</span> <span class="n">u_brake</span><span class="p">,</span> <span class="n">veh_vel</span><span class="p">)</span>
+        <span class="p">[</span><span class="n">w_mot</span><span class="p">,</span> <span class="n">t_mot</span><span class="p">,</span> <span class="n">t_load</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ModPower</span><span class="o">.</span><span class="n">Motor_control</span><span class="p">(</span><span class="n">t_mot_des</span><span class="p">,</span> <span class="n">w_shaft</span><span class="p">)</span>
+        <span class="p">[</span><span class="n">w_wheel</span><span class="p">,</span> <span class="n">vel_veh</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ModBody</span><span class="o">.</span><span class="n">Lon_driven_out</span><span class="p">(</span><span class="n">t_load</span><span class="p">,</span> <span class="n">t_brake</span><span class="p">,</span> <span class="n">t_drag</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">vel_veh</span><span class="p">,</span> <span class="n">the_wheel</span></div>
+
+<div class="viewcode-block" id="Mod_Veh.Veh_position_update"><a class="viewcode-back" href="../../py_sim.model_vehicle.html#py_sim.model_vehicle.Mod_Veh.Veh_position_update">[docs]</a>    <span class="k">def</span> <span class="nf">Veh_position_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vel_veh</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">the_wheel</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">veh_len</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ModBody</span><span class="o">.</span><span class="n">conf_veh_len</span>
+        <span class="n">ang_veh</span> <span class="o">=</span> <span class="n">the_wheel</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">psi_veh</span>
+        <span class="n">x_dot</span> <span class="o">=</span> <span class="n">vel_veh</span><span class="o">*</span><span class="n">cos</span><span class="p">(</span><span class="n">ang_veh</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos_x_veh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos_x_veh</span> <span class="o">+</span> <span class="n">x_dot</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span>
+        <span class="n">y_dot</span> <span class="o">=</span> <span class="n">vel_veh</span><span class="o">*</span><span class="n">sin</span><span class="p">(</span><span class="n">ang_veh</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos_y_veh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos_y_veh</span> <span class="o">+</span> <span class="n">y_dot</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span>
+        <span class="n">s_dot</span> <span class="o">=</span> <span class="n">vel_veh</span><span class="o">*</span><span class="n">cos</span><span class="p">(</span><span class="n">the_wheel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos_s_veh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos_s_veh</span> <span class="o">+</span> <span class="n">s_dot</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span>
+        <span class="n">n_dot</span> <span class="o">=</span> <span class="n">vel_veh</span><span class="o">*</span><span class="n">sin</span><span class="p">(</span><span class="n">the_wheel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos_n_veh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos_n_veh</span> <span class="o">+</span> <span class="n">n_dot</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span>
+        <span class="n">psi_dot</span> <span class="o">=</span> <span class="n">vel_veh</span><span class="o">/</span><span class="n">veh_len</span><span class="o">*</span><span class="n">the_wheel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">psi_veh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">psi_veh</span> <span class="o">+</span> <span class="n">psi_dot</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pos_x_veh</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos_y_veh</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos_s_veh</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos_n_veh</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">psi_veh</span><span class="p">]</span></div></div>
+<span class="c1">#%%  ----- test ground -----</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, ACELab.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'',
+            LANGUAGE:'en',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,7 @@
+py\_sim\.sim module
+===================
+
+.. automodule:: py_sim.sim
+    :members:
+    :undoc-members:
+    :show-inheritance:

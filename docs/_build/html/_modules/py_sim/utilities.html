@@ -1,0 +1,421 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>py_sim.utilities &mdash; py_sim  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> py_sim
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../py_sim.html">py_sim package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">py_sim</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../py_sim.html">py_sim</a> &raquo;</li>
+        
+      <li>py_sim.utilities</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for py_sim.utilities</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">py_sim utilities</span>
+<span class="sd">==============================================================</span>
+
+<span class="sd">Author</span>
+<span class="sd">~~~~~~~~~~~~~</span>
+<span class="sd">* kyunghan &lt;kyunghah.min@gmail.com&gt;</span>
+
+<span class="sd">Description</span>
+<span class="sd">~~~~~~~~~~~~~</span>
+<span class="sd">* Simulation utility modules</span>
+<span class="sd">    * Calc_Radius: Calculation road radius and curvature</span>
+<span class="sd">    * Filt_MovAvg: Moving average filter</span>
+<span class="sd">    * Calc_PrDis: Calculation projection distance</span>
+
+<span class="sd">Update</span>
+<span class="sd">~~~~~~~~~~~~~</span>
+<span class="sd">* [18/05/31] - Initial release - kyunghan</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import python lib modules</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">pi</span><span class="p">,</span> <span class="n">sin</span><span class="p">,</span> <span class="n">cos</span><span class="p">,</span> <span class="n">sqrt</span><span class="p">,</span> <span class="n">acos</span><span class="p">,</span> <span class="n">atan</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="k">import</span> <span class="n">distance</span> <span class="k">as</span> <span class="n">dist_calc</span>
+
+<div class="viewcode-block" id="Calc_Radius"><a class="viewcode-back" href="../../py_sim.utilities.html#py_sim.utilities.Calc_Radius">[docs]</a><span class="k">def</span> <span class="nf">Calc_Radius</span> <span class="p">(</span><span class="n">x_in</span><span class="p">,</span> <span class="n">y_in</span><span class="p">,</span> <span class="n">filt_num</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Example function with PEP 484 type annotations.</span>
+
+<span class="sd">    The return type must be duplicated in the docstring to comply</span>
+<span class="sd">    with the NumPy docstring style.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    param1</span>
+<span class="sd">        The first parameter.</span>
+<span class="sd">    param2</span>
+<span class="sd">        The second parameter.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool</span>
+<span class="sd">        True if successful, False otherwise.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_in</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_in</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Radius calculation error: Data length must be same!&#39;</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">x_c_out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x_in</span><span class="p">))</span>
+        <span class="n">y_c_out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x_in</span><span class="p">))</span>
+        <span class="n">R_out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x_in</span><span class="p">))</span>
+        <span class="n">circle_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x_in</span><span class="p">))</span>
+        <span class="n">mr_o</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x_in</span><span class="p">))</span>
+        <span class="n">mt_o</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x_in</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x_in</span><span class="p">)</span><span class="o">-</span><span class="mi">2</span><span class="p">):</span>
+            <span class="n">x_lst</span> <span class="o">=</span> <span class="n">x_in</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">];</span> <span class="n">y_lst</span> <span class="o">=</span> <span class="n">y_in</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">]</span>
+            <span class="n">x1</span> <span class="o">=</span> <span class="n">x_lst</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span> <span class="n">x2</span> <span class="o">=</span> <span class="n">x_lst</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span> <span class="n">x3</span> <span class="o">=</span> <span class="n">x_lst</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span> <span class="n">y1</span> <span class="o">=</span> <span class="n">y_lst</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span> <span class="n">y2</span> <span class="o">=</span> <span class="n">y_lst</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span> <span class="n">y3</span> <span class="o">=</span> <span class="n">y_lst</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">mr</span> <span class="o">=</span> <span class="p">(</span><span class="n">y2</span><span class="o">-</span><span class="n">y1</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">x2</span><span class="o">-</span><span class="n">x1</span><span class="p">);</span>
+            <span class="n">mt</span> <span class="o">=</span> <span class="p">(</span><span class="n">y3</span><span class="o">-</span><span class="n">y2</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">x3</span><span class="o">-</span><span class="n">x2</span><span class="p">);</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">mr</span><span class="p">,</span><span class="n">mt</span><span class="p">)</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">mr</span><span class="p">)</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">mt</span><span class="p">):</span>
+                <span class="n">x_c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+                <span class="n">y_c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+                <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+                <span class="n">circle_on</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Radius calculation</span>
+                <span class="k">if</span> <span class="n">mr</span> <span class="o">&gt;=</span> <span class="nb">abs</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span>
+                    <span class="n">x_c</span> <span class="o">=</span> <span class="p">(</span><span class="n">mt</span><span class="o">*</span><span class="p">(</span><span class="n">y3</span><span class="o">-</span><span class="n">y1</span><span class="p">)</span><span class="o">+</span><span class="p">(</span><span class="n">x2</span><span class="o">+</span><span class="n">x3</span><span class="p">))</span><span class="o">/</span><span class="mi">2</span>
+                <span class="k">elif</span> <span class="n">mt</span> <span class="o">&gt;=</span> <span class="nb">abs</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span>
+                    <span class="n">x_c</span> <span class="o">=</span> <span class="p">((</span><span class="n">x1</span><span class="o">+</span><span class="n">x2</span><span class="p">)</span> <span class="o">-</span> <span class="n">mr</span><span class="o">*</span><span class="p">(</span><span class="n">y3</span><span class="o">-</span><span class="n">y1</span><span class="p">))</span><span class="o">/</span><span class="mi">2</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">x_c</span> <span class="o">=</span> <span class="p">(</span><span class="n">mr</span><span class="o">*</span><span class="n">mt</span><span class="o">*</span><span class="p">(</span><span class="n">y3</span><span class="o">-</span><span class="n">y1</span><span class="p">)</span><span class="o">+</span><span class="n">mr</span><span class="o">*</span><span class="p">(</span><span class="n">x2</span><span class="o">+</span><span class="n">x3</span><span class="p">)</span><span class="o">-</span><span class="n">mt</span><span class="o">*</span><span class="p">(</span><span class="n">x1</span><span class="o">+</span><span class="n">x2</span><span class="p">))</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">mr</span><span class="o">-</span><span class="n">mt</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">mr</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">y_c</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="n">mt</span><span class="o">*</span><span class="p">(</span><span class="n">x_c</span><span class="o">-</span><span class="p">(</span><span class="n">x2</span><span class="o">+</span><span class="n">x3</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">+</span><span class="p">(</span><span class="n">y2</span><span class="o">+</span><span class="n">y3</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">y_c</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="n">mr</span><span class="o">*</span><span class="p">(</span><span class="n">x_c</span><span class="o">-</span><span class="p">(</span><span class="n">x1</span><span class="o">+</span><span class="n">x2</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">+</span><span class="p">(</span><span class="n">y1</span><span class="o">+</span><span class="n">y2</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+                <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">((</span><span class="n">x_c</span><span class="o">-</span><span class="n">x1</span><span class="p">))</span><span class="o">+</span><span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">((</span><span class="n">y_c</span><span class="o">-</span><span class="n">y1</span><span class="p">)))</span>
+                <span class="n">circle_on</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">x_c_out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_c</span>
+            <span class="n">y_c_out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">y_c</span>
+            <span class="n">R_out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">R</span>
+            <span class="n">circle_index</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">circle_on</span>
+            <span class="n">mr_o</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">mr</span>
+            <span class="n">mt_o</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">mt</span>
+        <span class="k">if</span> <span class="n">filt_num</span> <span class="o">!=</span><span class="mi">0</span><span class="p">:</span>
+           <span class="n">R_out</span> <span class="o">=</span> <span class="n">Filt_MovAvg</span><span class="p">(</span><span class="n">R_out</span><span class="p">,</span> <span class="n">filt_num</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">R_out</span><span class="p">,</span> <span class="n">x_c_out</span><span class="p">,</span> <span class="n">y_c_out</span><span class="p">,</span> <span class="n">circle_index</span><span class="p">,</span> <span class="n">mr_o</span><span class="p">,</span> <span class="n">mt_o</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Filt_MovAvg"><a class="viewcode-back" href="../../py_sim.utilities.html#py_sim.utilities.Filt_MovAvg">[docs]</a><span class="k">def</span> <span class="nf">Filt_MovAvg</span><span class="p">(</span><span class="n">Data</span><span class="p">,</span> <span class="n">odd_filt_num</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    #2. Moving average filt</span>
+<span class="sd">    # Description: mean value filterring in moving window</span>
+<span class="sd">    #              !!! moving window size should be odd number</span>
+<span class="sd">    # Inputs -----------------------------------------------------------</span>
+<span class="sd">    #   Data - Raw data</span>
+<span class="sd">    #   odd_filt_num - Size of moving window</span>
+<span class="sd">    # Outputs ----------------------------------------------------------</span>
+<span class="sd">    #   Data_FiltOut - Filtering data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">Data</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">odd_filt_num</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Moving average filter error: Data &lt;= Filt Num&#39;</span><span class="p">)</span>
+        <span class="n">Data_FiltOut</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">elif</span> <span class="n">odd_filt_num</span><span class="o">%</span><span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Moving average filter error: Filt Num bust be odd number&#39;</span><span class="p">)</span>
+        <span class="n">Data_FiltOut</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">tmpFiltNum_c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">(</span><span class="n">odd_filt_num</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">Data_FiltOut</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Data</span><span class="p">))</span>
+        <span class="n">Data_FiltOut</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">tmpFiltNum_c</span><span class="p">]</span> <span class="o">=</span> <span class="n">Data</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">tmpFiltNum_c</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tmpFiltNum_c</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">Data</span><span class="p">),</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">Data_FiltOut</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">Data</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="n">tmpFiltNum_c</span><span class="p">:</span><span class="n">i</span><span class="o">-</span><span class="n">tmpFiltNum_c</span><span class="o">+</span><span class="n">odd_filt_num</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">Data_FiltOut</span></div>
+
+<div class="viewcode-block" id="Calc_PrDis"><a class="viewcode-back" href="../../py_sim.utilities.html#py_sim.utilities.Calc_PrDis">[docs]</a><span class="k">def</span> <span class="nf">Calc_PrDis</span><span class="p">(</span><span class="n">Data_Array_x</span><span class="p">,</span> <span class="n">Data_Array_y</span><span class="p">,</span> <span class="n">Current_point</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Projection distance calculation</span>
+<span class="sd">    Description: using for projection distance and direction between road and vehicle</span>
+<span class="sd">    based on radial coordination</span>
+<span class="sd">    Inputs</span>
+<span class="sd">    -----------------------------------------------------------</span>
+<span class="sd">    Data_Array_x - Road array X</span>
+<span class="sd">    Data_Array_y - Road array Y</span>
+<span class="sd">    Current_point - Vehicle current position [position x, position y]</span>
+<span class="sd">    Outputs</span>
+<span class="sd">    ----------------------------------------------------------</span>
+<span class="sd">    tmp_s - Road length of projection distance</span>
+<span class="sd">    tmp_n - Projection distance</span>
+<span class="sd">    tmp_dir - Direction of road</span>
+<span class="sd">    min_index - Minimum distance index of road data</span>
+<span class="sd">    veh_an - Radian angle of vehicle position</span>
+<span class="sd">    road_an - Radian angle of road</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Calculate distance array from current vehicle position and road data X, Y</span>
+    <span class="n">dis_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">Data_Array_x</span> <span class="o">-</span> <span class="n">Current_point</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">Data_Array_y</span> <span class="o">-</span> <span class="n">Current_point</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="c1"># Find minimum distance point of road</span>
+    <span class="n">min_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">dis_array</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">min_index</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Data_Array_x</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="c1"># Road end condition</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;========== Simulation is terminated!! ========= &#39;</span><span class="p">)</span>
+        <span class="n">tmp_s</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">tmp_n</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">tmp_dir</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">veh_an</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">road_an</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># tmp_a, tmp_b, tmp_c : distan</span>
+        <span class="n">tmp_c</span> <span class="o">=</span> <span class="n">dis_array</span><span class="p">[</span><span class="n">min_index</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">dis_array</span><span class="p">[</span><span class="n">min_index</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">dis_array</span><span class="p">[</span><span class="n">min_index</span><span class="o">+</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="c1"># Calculate distance</span>
+            <span class="n">tmp_b</span> <span class="o">=</span> <span class="n">dis_array</span><span class="p">[</span><span class="n">min_index</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">tmp_a</span> <span class="o">=</span> <span class="n">dist_calc</span><span class="o">.</span><span class="n">euclidean</span><span class="p">([</span><span class="n">Data_Array_x</span><span class="p">[</span><span class="n">min_index</span><span class="p">],</span> <span class="n">Data_Array_y</span><span class="p">[</span><span class="n">min_index</span><span class="p">]],</span> <span class="p">[</span><span class="n">Data_Array_x</span><span class="p">[</span><span class="n">min_index</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">Data_Array_y</span><span class="p">[</span><span class="n">min_index</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+            <span class="c1"># Calculate road angle</span>
+            <span class="n">road_an</span> <span class="o">=</span> <span class="n">atan</span><span class="p">((</span><span class="n">Data_Array_y</span><span class="p">[</span><span class="n">min_index</span><span class="p">]</span> <span class="o">-</span> <span class="n">Data_Array_y</span><span class="p">[</span><span class="n">min_index</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="n">Data_Array_x</span><span class="p">[</span><span class="n">min_index</span><span class="p">]</span> <span class="o">-</span> <span class="n">Data_Array_x</span><span class="p">[</span><span class="n">min_index</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="k">if</span> <span class="n">Data_Array_x</span><span class="p">[</span><span class="n">min_index</span><span class="p">]</span> <span class="o">-</span> <span class="n">Data_Array_x</span><span class="p">[</span><span class="n">min_index</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">road_an</span> <span class="o">=</span> <span class="n">road_an</span> <span class="o">+</span> <span class="n">pi</span>
+            <span class="k">elif</span> <span class="n">road_an</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">road_an</span> <span class="o">=</span> <span class="n">road_an</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">pi</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">road_an</span> <span class="o">=</span> <span class="n">road_an</span>
+            <span class="c1"># Calculate vehicle angle</span>
+            <span class="n">veh_an</span> <span class="o">=</span> <span class="n">atan</span><span class="p">((</span><span class="n">Current_point</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">Data_Array_y</span><span class="p">[</span><span class="n">min_index</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="n">Current_point</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">Data_Array_x</span><span class="p">[</span><span class="n">min_index</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="k">if</span> <span class="n">Current_point</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">Data_Array_x</span><span class="p">[</span><span class="n">min_index</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">veh_an</span> <span class="o">=</span> <span class="n">veh_an</span> <span class="o">+</span> <span class="n">pi</span>
+            <span class="k">elif</span> <span class="n">veh_an</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">veh_an</span> <span class="o">=</span> <span class="n">veh_an</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">pi</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">veh_an</span> <span class="o">=</span> <span class="n">veh_an</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Calculate distance</span>
+            <span class="n">tmp_b</span> <span class="o">=</span> <span class="n">dis_array</span><span class="p">[</span><span class="n">min_index</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">tmp_a</span> <span class="o">=</span> <span class="n">dist_calc</span><span class="o">.</span><span class="n">euclidean</span><span class="p">([</span><span class="n">Data_Array_x</span><span class="p">[</span><span class="n">min_index</span><span class="p">],</span> <span class="n">Data_Array_y</span><span class="p">[</span><span class="n">min_index</span><span class="p">]],</span> <span class="p">[</span><span class="n">Data_Array_x</span><span class="p">[</span><span class="n">min_index</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="n">Data_Array_y</span><span class="p">[</span><span class="n">min_index</span><span class="o">+</span><span class="mi">1</span><span class="p">]])</span>
+            <span class="c1"># Calculate road angle</span>
+            <span class="n">road_an</span> <span class="o">=</span> <span class="n">atan</span><span class="p">((</span><span class="n">Data_Array_y</span><span class="p">[</span><span class="n">min_index</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">Data_Array_y</span><span class="p">[</span><span class="n">min_index</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="n">Data_Array_x</span><span class="p">[</span><span class="n">min_index</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">Data_Array_x</span><span class="p">[</span><span class="n">min_index</span><span class="p">]))</span>
+            <span class="k">if</span> <span class="n">Data_Array_x</span><span class="p">[</span><span class="n">min_index</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">Data_Array_x</span><span class="p">[</span><span class="n">min_index</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">road_an</span> <span class="o">=</span> <span class="n">road_an</span> <span class="o">+</span> <span class="n">pi</span>
+            <span class="k">elif</span> <span class="n">road_an</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">road_an</span> <span class="o">=</span> <span class="n">road_an</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">pi</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">road_an</span> <span class="o">=</span> <span class="n">road_an</span>
+            <span class="c1"># Calculate vehicle angle</span>
+            <span class="n">veh_an</span> <span class="o">=</span> <span class="n">atan</span><span class="p">((</span><span class="n">Current_point</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">Data_Array_y</span><span class="p">[</span><span class="n">min_index</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="n">Current_point</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">Data_Array_x</span><span class="p">[</span><span class="n">min_index</span><span class="p">]))</span>
+            <span class="k">if</span> <span class="n">Current_point</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">Data_Array_x</span><span class="p">[</span><span class="n">min_index</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">veh_an</span> <span class="o">=</span> <span class="n">veh_an</span> <span class="o">+</span> <span class="n">pi</span>
+            <span class="k">elif</span> <span class="n">veh_an</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">veh_an</span> <span class="o">=</span> <span class="n">veh_an</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">pi</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">veh_an</span> <span class="o">=</span> <span class="n">veh_an</span>
+        <span class="c1"># Calculate projection distance using 2nd law of cosin</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">tmp_a</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">tmp_c</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="n">tmp_b</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">tmp_a</span><span class="o">*</span><span class="n">tmp_c</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">tmp_dem</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">tmp_a</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">tmp_c</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="n">tmp_b</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">tmp_a</span><span class="o">*</span><span class="n">tmp_c</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">tmp_dem</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tmp_dem</span> <span class="o">=</span> <span class="p">(</span><span class="n">tmp_a</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">tmp_c</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="n">tmp_b</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">tmp_a</span><span class="o">*</span><span class="n">tmp_c</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tmp_c</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">tmp_An</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tmp_An</span> <span class="o">=</span> <span class="n">acos</span><span class="p">(</span><span class="n">tmp_dem</span><span class="p">)</span>
+        <span class="c1"># Determine projection distance and road length</span>
+        <span class="n">tmp_n</span> <span class="o">=</span> <span class="n">sin</span><span class="p">(</span><span class="n">tmp_An</span><span class="p">)</span><span class="o">*</span><span class="n">tmp_c</span>
+        <span class="n">tmp_s</span> <span class="o">=</span> <span class="n">cos</span><span class="p">(</span><span class="n">tmp_An</span><span class="p">)</span><span class="o">*</span><span class="n">tmp_c</span>
+        <span class="c1"># Determine road direction - calculation angular difference (vehicle, road)</span>
+        <span class="n">an_dif</span> <span class="o">=</span> <span class="n">veh_an</span> <span class="o">-</span> <span class="n">road_an</span>
+        <span class="k">if</span> <span class="n">an_dif</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">an_dif</span> <span class="o">&lt;</span> <span class="n">pi</span><span class="p">:</span>
+            <span class="c1"># Road exist at right position of vehicle</span>
+            <span class="n">tmp_dir</span> <span class="o">=</span> <span class="s1">&#39;Right&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tmp_dir</span> <span class="o">=</span> <span class="s1">&#39;Left&#39;</span>
+    <span class="c1"># Return value</span>
+    <span class="k">return</span> <span class="n">tmp_s</span><span class="p">,</span> <span class="n">tmp_n</span><span class="p">,</span> <span class="n">tmp_dir</span><span class="p">,</span> <span class="n">min_index</span><span class="p">,</span> <span class="n">veh_an</span><span class="p">,</span> <span class="n">road_an</span></div>
+<span class="c1">#%%  ----- test ground -----</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, ACELab.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'',
+            LANGUAGE:'en',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

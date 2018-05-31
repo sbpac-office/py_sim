@@ -1,0 +1,641 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Simulation model : Maneuver &mdash; py_sim  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Simulation model : Environment" href="py_sim.model_environment.html" />
+    <link rel="prev" title="Simulation model : Vehicle" href="py_sim.model_vehicle.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> py_sim
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="py_sim.html">py_sim package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="py_sim.html#py-sim-pakcage-overview">py_sim pakcage overview</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="py_sim.html#simulation-models">Simulation models</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="py_sim.model_vehicle.html">Simulation model : Vehicle</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Simulation model : Maneuver</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#author">Author</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#update">Update</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="py_sim.model_environment.html">Simulation model : Environment</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="py_sim.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_sim.html#subpackages">Subpackages</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">py_sim</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="py_sim.html">py_sim package</a> &raquo;</li>
+        
+      <li>Simulation model : Maneuver</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/py_sim.model_maneuver.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <span class="target" id="module-py_sim.model_maneuver"></span><div class="section" id="simulation-model-maneuver">
+<h1>Simulation model : Maneuver<a class="headerlink" href="#simulation-model-maneuver" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="author">
+<h2>Author<a class="headerlink" href="#author" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>kyunghan &lt;<a class="reference external" href="mailto:kyunghah&#46;min&#37;&#52;&#48;gmail&#46;com">kyunghah<span>&#46;</span>min<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;</li>
+</ul>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Driver model</li>
+<li>Behavior model</li>
+</ul>
+</div>
+<div class="section" id="update">
+<h2>Update<a class="headerlink" href="#update" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>[18/05/31] - Initial release - kyunghan</li>
+</ul>
+<dl class="class">
+<dt id="py_sim.model_maneuver.Mod_Behavior">
+<em class="property">class </em><code class="descclassname">py_sim.model_maneuver.</code><code class="descname">Mod_Behavior</code><span class="sig-paren">(</span><em>Driver</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_sim/model_maneuver.html#Mod_Behavior"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#py_sim.model_maneuver.Mod_Behavior" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Module description here</p>
+<dl class="docutils">
+<dt>ConfigVariables:</dt>
+<dd><ul class="first last simple">
+<li>conf_rw_wheel</li>
+<li>conf_jw_body</li>
+<li>conf_brk_coef</li>
+<li>conf_acc_coef</li>
+<li>conf_veh_len</li>
+<li>…</li>
+</ul>
+</dd>
+<dt>Submodules:</dt>
+<dd><ul class="first last simple">
+<li>Body_config:</li>
+<li>Dyn_config:</li>
+<li>Lon_driven_in:</li>
+<li>…</li>
+</ul>
+</dd>
+<dt>Operation:</dt>
+<dd><p class="first">Description operation here:</p>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span>!!!Make operation diagram here!!!
+# Module_name(in//out)
+Motor_control(t_mot, w_mot // des_torque)
+    &gt;&gt; Motor_driven(t_mot, w_mot // v_mot)
+        &gt;&gt; Motor_elec_dynamics, Motor_mech_dynamics, Drive_shaft_dynamics
+    &gt;&gt; Motor_torque_system(v_mot // des_torque)
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="method">
+<dt id="py_sim.model_maneuver.Mod_Behavior.Drver_set">
+<code class="descname">Drver_set</code><span class="sig-paren">(</span><em>DriverSet</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_sim/model_maneuver.html#Mod_Behavior.Drver_set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#py_sim.model_maneuver.Mod_Behavior.Drver_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function overview here</p>
+<p>Functional description</p>
+<p>Code example wirght follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">w_mot</span><span class="p">,</span> <span class="n">t_mot</span><span class="p">,</span> <span class="n">t_load</span><span class="p">]</span> <span class="o">=</span> <span class="n">Motor_control</span><span class="p">(</span><span class="n">t_mot_des</span><span class="p">)</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>Input parameters here</li>
+<li>t_mot_des:</li>
+<li>w_shaft:</li>
+<li>…</li>
+</ul>
+</dd>
+<dt>returns:</dt>
+<dd><ul class="first last simple">
+<li>Return of function here</li>
+<li>w_mot: motor rotational speed [rad/s]</li>
+<li>t_load: load torque from body model [Nm]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="py_sim.model_maneuver.Mod_Behavior.Dynamic_state_recog">
+<code class="descname">Dynamic_state_recog</code><span class="sig-paren">(</span><em>pre_veh_speed</em>, <em>pre_veh_reldis=250</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_sim/model_maneuver.html#Mod_Behavior.Dynamic_state_recog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#py_sim.model_maneuver.Mod_Behavior.Dynamic_state_recog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function overview here</p>
+<p>Functional description</p>
+<p>Code example wirght follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">w_mot</span><span class="p">,</span> <span class="n">t_mot</span><span class="p">,</span> <span class="n">t_load</span><span class="p">]</span> <span class="o">=</span> <span class="n">Motor_control</span><span class="p">(</span><span class="n">t_mot_des</span><span class="p">)</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>Input parameters here</li>
+<li>t_mot_des:</li>
+<li>w_shaft:</li>
+<li>…</li>
+</ul>
+</dd>
+<dt>returns:</dt>
+<dd><ul class="first last simple">
+<li>Return of function here</li>
+<li>w_mot: motor rotational speed [rad/s]</li>
+<li>t_load: load torque from body model [Nm]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="py_sim.model_maneuver.Mod_Behavior.Lat_behavior">
+<code class="descname">Lat_behavior</code><span class="sig-paren">(</span><em>veh_position_x</em>, <em>veh_position_y</em>, <em>veh_ang</em>, <em>road_x</em>, <em>road_y</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_sim/model_maneuver.html#Mod_Behavior.Lat_behavior"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#py_sim.model_maneuver.Mod_Behavior.Lat_behavior" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function overview here</p>
+<p>Functional description</p>
+<p>Code example wirght follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">w_mot</span><span class="p">,</span> <span class="n">t_mot</span><span class="p">,</span> <span class="n">t_load</span><span class="p">]</span> <span class="o">=</span> <span class="n">Motor_control</span><span class="p">(</span><span class="n">t_mot_des</span><span class="p">)</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>Input parameters here</li>
+<li>t_mot_des:</li>
+<li>w_shaft:</li>
+<li>…</li>
+</ul>
+</dd>
+<dt>returns:</dt>
+<dd><ul class="first last simple">
+<li>Return of function here</li>
+<li>w_mot: motor rotational speed [rad/s]</li>
+<li>t_load: load torque from body model [Nm]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="py_sim.model_maneuver.Mod_Behavior.Lat_control">
+<code class="descname">Lat_control</code><span class="sig-paren">(</span><em>lane_offset</em>, <em>angle_dif</em>, <em>offset_des=0</em>, <em>angle_diff_des=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_sim/model_maneuver.html#Mod_Behavior.Lat_control"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#py_sim.model_maneuver.Mod_Behavior.Lat_control" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function overview here</p>
+<p>Functional description</p>
+<p>Code example wirght follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">w_mot</span><span class="p">,</span> <span class="n">t_mot</span><span class="p">,</span> <span class="n">t_load</span><span class="p">]</span> <span class="o">=</span> <span class="n">Motor_control</span><span class="p">(</span><span class="n">t_mot_des</span><span class="p">)</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>Input parameters here</li>
+<li>t_mot_des:</li>
+<li>w_shaft:</li>
+<li>…</li>
+</ul>
+</dd>
+<dt>returns:</dt>
+<dd><ul class="first last simple">
+<li>Return of function here</li>
+<li>w_mot: motor rotational speed [rad/s]</li>
+<li>t_load: load torque from body model [Nm]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="py_sim.model_maneuver.Mod_Behavior.Lateral_state_recog">
+<code class="descname">Lateral_state_recog</code><span class="sig-paren">(</span><em>veh_position_x</em>, <em>veh_position_y</em>, <em>veh_ang</em>, <em>road_x</em>, <em>road_y</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_sim/model_maneuver.html#Mod_Behavior.Lateral_state_recog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#py_sim.model_maneuver.Mod_Behavior.Lateral_state_recog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function overview here</p>
+<p>Functional description</p>
+<p>Code example wirght follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">w_mot</span><span class="p">,</span> <span class="n">t_mot</span><span class="p">,</span> <span class="n">t_load</span><span class="p">]</span> <span class="o">=</span> <span class="n">Motor_control</span><span class="p">(</span><span class="n">t_mot_des</span><span class="p">)</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>Input parameters here</li>
+<li>t_mot_des:</li>
+<li>w_shaft:</li>
+<li>…</li>
+</ul>
+</dd>
+<dt>returns:</dt>
+<dd><ul class="first last simple">
+<li>Return of function here</li>
+<li>w_mot: motor rotational speed [rad/s]</li>
+<li>t_load: load torque from body model [Nm]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="py_sim.model_maneuver.Mod_Behavior.Lon_behavior">
+<code class="descname">Lon_behavior</code><span class="sig-paren">(</span><em>static_obj_in</em>, <em>veh_position_s</em>, <em>road_len</em>, <em>veh_speed</em>, <em>pre_veh_speed='None'</em>, <em>pre_veh_reldis=250</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_sim/model_maneuver.html#Mod_Behavior.Lon_behavior"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#py_sim.model_maneuver.Mod_Behavior.Lon_behavior" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function overview here</p>
+<p>Functional description</p>
+<p>Code example wirght follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">w_mot</span><span class="p">,</span> <span class="n">t_mot</span><span class="p">,</span> <span class="n">t_load</span><span class="p">]</span> <span class="o">=</span> <span class="n">Motor_control</span><span class="p">(</span><span class="n">t_mot_des</span><span class="p">)</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>Input parameters here</li>
+<li>t_mot_des:</li>
+<li>w_shaft:</li>
+<li>…</li>
+</ul>
+</dd>
+<dt>returns:</dt>
+<dd><ul class="first last simple">
+<li>Return of function here</li>
+<li>w_mot: motor rotational speed [rad/s]</li>
+<li>t_load: load torque from body model [Nm]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="py_sim.model_maneuver.Mod_Behavior.Lon_control">
+<code class="descname">Lon_control</code><span class="sig-paren">(</span><em>veh_vel_set</em>, <em>veh_vel</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_sim/model_maneuver.html#Mod_Behavior.Lon_control"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#py_sim.model_maneuver.Mod_Behavior.Lon_control" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function overview here</p>
+<p>Functional description</p>
+<p>Code example wirght follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">w_mot</span><span class="p">,</span> <span class="n">t_mot</span><span class="p">,</span> <span class="n">t_load</span><span class="p">]</span> <span class="o">=</span> <span class="n">Motor_control</span><span class="p">(</span><span class="n">t_mot_des</span><span class="p">)</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>Input parameters here</li>
+<li>t_mot_des:</li>
+<li>w_shaft:</li>
+<li>…</li>
+</ul>
+</dd>
+<dt>returns:</dt>
+<dd><ul class="first last simple">
+<li>Return of function here</li>
+<li>w_mot: motor rotational speed [rad/s]</li>
+<li>t_load: load torque from body model [Nm]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="py_sim.model_maneuver.Mod_Behavior.Lon_vel_set">
+<code class="descname">Lon_vel_set</code><span class="sig-paren">(</span><em>stStatic</em>, <em>stDynamic</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_sim/model_maneuver.html#Mod_Behavior.Lon_vel_set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#py_sim.model_maneuver.Mod_Behavior.Lon_vel_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function overview here</p>
+<p>Functional description</p>
+<p>Code example wirght follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">w_mot</span><span class="p">,</span> <span class="n">t_mot</span><span class="p">,</span> <span class="n">t_load</span><span class="p">]</span> <span class="o">=</span> <span class="n">Motor_control</span><span class="p">(</span><span class="n">t_mot_des</span><span class="p">)</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>Input parameters here</li>
+<li>t_mot_des:</li>
+<li>w_shaft:</li>
+<li>…</li>
+</ul>
+</dd>
+<dt>returns:</dt>
+<dd><ul class="first last simple">
+<li>Return of function here</li>
+<li>w_mot: motor rotational speed [rad/s]</li>
+<li>t_load: load torque from body model [Nm]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="py_sim.model_maneuver.Mod_Behavior.Maneuver_config">
+<code class="descname">Maneuver_config</code><span class="sig-paren">(</span><em>cruise_speed_set=15</em>, <em>mincv_speed_set=5</em>, <em>curve_coef=1500</em>, <em>transition_dis=20</em>, <em>forecast_dis=100</em>, <em>cf_dis=120</em>, <em>lat_off=0.5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_sim/model_maneuver.html#Mod_Behavior.Maneuver_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#py_sim.model_maneuver.Mod_Behavior.Maneuver_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function overview here</p>
+<p>Functional description</p>
+<p>Code example wirght follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">w_mot</span><span class="p">,</span> <span class="n">t_mot</span><span class="p">,</span> <span class="n">t_load</span><span class="p">]</span> <span class="o">=</span> <span class="n">Motor_control</span><span class="p">(</span><span class="n">t_mot_des</span><span class="p">)</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>Input parameters here</li>
+<li>t_mot_des:</li>
+<li>w_shaft:</li>
+<li>…</li>
+</ul>
+</dd>
+<dt>returns:</dt>
+<dd><ul class="first last simple">
+<li>Return of function here</li>
+<li>w_mot: motor rotational speed [rad/s]</li>
+<li>t_load: load torque from body model [Nm]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="py_sim.model_maneuver.Mod_Behavior.Static_state_recog">
+<code class="descname">Static_state_recog</code><span class="sig-paren">(</span><em>static_obj_in</em>, <em>veh_position_s</em>, <em>road_len</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_sim/model_maneuver.html#Mod_Behavior.Static_state_recog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#py_sim.model_maneuver.Mod_Behavior.Static_state_recog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function overview here</p>
+<p>Functional description</p>
+<p>Code example wirght follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">w_mot</span><span class="p">,</span> <span class="n">t_mot</span><span class="p">,</span> <span class="n">t_load</span><span class="p">]</span> <span class="o">=</span> <span class="n">Motor_control</span><span class="p">(</span><span class="n">t_mot_des</span><span class="p">)</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>Input parameters here</li>
+<li>t_mot_des:</li>
+<li>w_shaft:</li>
+<li>…</li>
+</ul>
+</dd>
+<dt>returns:</dt>
+<dd><ul class="first last simple">
+<li>Return of function here</li>
+<li>w_mot: motor rotational speed [rad/s]</li>
+<li>t_load: load torque from body model [Nm]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="py_sim.model_maneuver.Mod_Driver">
+<em class="property">class </em><code class="descclassname">py_sim.model_maneuver.</code><code class="descname">Mod_Driver</code><a class="reference internal" href="_modules/py_sim/model_maneuver.html#Mod_Driver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#py_sim.model_maneuver.Mod_Driver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Module description here</p>
+<dl class="docutils">
+<dt>ConfigVariables:</dt>
+<dd><ul class="first last simple">
+<li>conf_rw_wheel</li>
+<li>conf_jw_body</li>
+<li>conf_brk_coef</li>
+<li>conf_acc_coef</li>
+<li>conf_veh_len</li>
+<li>…</li>
+</ul>
+</dd>
+<dt>Submodules:</dt>
+<dd><ul class="first last simple">
+<li>Body_config:</li>
+<li>Dyn_config:</li>
+<li>Lon_driven_in:</li>
+<li>…</li>
+</ul>
+</dd>
+<dt>Operation:</dt>
+<dd><p class="first">Description operation here:</p>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span>!!!Make operation diagram here!!!
+# Module_name(in//out)
+Motor_control(t_mot, w_mot // des_torque)
+    &gt;&gt; Motor_driven(t_mot, w_mot // v_mot)
+        &gt;&gt; Motor_elec_dynamics, Motor_mech_dynamics, Drive_shaft_dynamics
+    &gt;&gt; Motor_torque_system(v_mot // des_torque)
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="method">
+<dt id="py_sim.model_maneuver.Mod_Driver.set_char">
+<code class="descname">set_char</code><span class="sig-paren">(</span><em>DriverChar='Normal'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_sim/model_maneuver.html#Mod_Driver.set_char"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#py_sim.model_maneuver.Mod_Driver.set_char" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="py_sim.model_maneuver.Mod_Driver.set_driver_param">
+<code class="descname">set_driver_param</code><span class="sig-paren">(</span><em>P_gain_lon=0.5</em>, <em>I_gain_lon=0.1</em>, <em>D_gain_lon=0</em>, <em>P_gain_lat=1</em>, <em>I_gain_lat=1</em>, <em>D_gain_lat=0</em>, <em>P_gain_yaw=1</em>, <em>I_gain_yaw=1</em>, <em>D_gain_yaw=0</em>, <em>shift_time=1.5</em>, <em>max_acc=4</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/py_sim/model_maneuver.html#Mod_Driver.set_driver_param"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#py_sim.model_maneuver.Mod_Driver.set_driver_param" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="data">
+<dt id="py_sim.model_maneuver.Ts">
+<code class="descclassname">py_sim.model_maneuver.</code><code class="descname">Ts</code><em class="property"> = 0.01</em><a class="headerlink" href="#py_sim.model_maneuver.Ts" title="Permalink to this definition">¶</a></dt>
+<dd><p>global vairable: simulation sampling timeself.</p>
+<p>you can declare other sampling time in application as vairable <code class="docutils literal notranslate"><span class="pre">Ts</span></code></p>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="py_sim.model_environment.html" class="btn btn-neutral float-right" title="Simulation model : Environment" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="py_sim.model_vehicle.html" class="btn btn-neutral" title="Simulation model : Vehicle" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, ACELab.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            LANGUAGE:'en',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

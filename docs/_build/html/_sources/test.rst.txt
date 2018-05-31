@@ -1,0 +1,17 @@
+test package
+============
+
+Submodules
+----------
+
+.. toctree::
+
+   test.test_acc
+
+Module contents
+---------------
+
+.. automodule:: test
+    :members:
+    :undoc-members:
+    :show-inheritance:

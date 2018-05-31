@@ -1,0 +1,1134 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>py_sim.sim_models &mdash; py_sim  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> py_sim
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../py_sim.html">py_sim package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">py_sim</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../py_sim.html">py_sim</a> &raquo;</li>
+        
+      <li>py_sim.sim_models</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for py_sim.sim_models</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Vehicle simulation _models</span>
+<span class="sd">==============================================================</span>
+
+<span class="sd">Author</span>
+<span class="sd">~~~~~~~~~~~~~</span>
+<span class="sd">* kyunghan &lt;kyunghah.min@gmail.com&gt;</span>
+
+<span class="sd">Description</span>
+<span class="sd">~~~~~~~~~~~~~</span>
+<span class="sd">* Vehicle models</span>
+<span class="sd">    * Mod_PowerTrain</span>
+<span class="sd">    * Mod_Body</span>
+<span class="sd">    * Mod_Veh</span>
+<span class="sd">* Maneuver models</span>
+<span class="sd">    * Mod_Driver</span>
+<span class="sd">    * Mod_Behavior</span>
+<span class="sd">* Environement models</span>
+<span class="sd">    * Mod_Env</span>
+
+<span class="sd">Update</span>
+<span class="sd">~~~~~~~~~~~~~</span>
+<span class="sd">* [18/05/31] - Initial release - kyunghan</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import python lib modules</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">pi</span><span class="p">,</span> <span class="n">sin</span><span class="p">,</span> <span class="n">cos</span><span class="p">,</span> <span class="n">atan</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="k">import</span> <span class="n">distance</span> <span class="k">as</span> <span class="n">dist_calc</span>
+<span class="c1"># import package modules</span>
+<span class="kn">from</span> <span class="nn">utilities</span> <span class="k">import</span> <span class="n">Calc_Radius</span><span class="p">,</span> <span class="n">Filt_MovAvg</span><span class="p">,</span> <span class="n">Calc_PrDis</span>
+<span class="kn">from</span> <span class="nn">type_def</span> <span class="k">import</span> <span class="n">type_pid_controller</span><span class="p">,</span> <span class="n">type_drvstate</span><span class="p">,</span> <span class="n">type_objective</span>
+<span class="c1"># import config data modules</span>
+
+<span class="c1"># simulation sampling time</span>
+<span class="n">Ts</span> <span class="o">=</span> <span class="mf">0.01</span>
+<span class="sd">&quot;&quot;&quot;global vairable: simulation sampling timeself.</span>
+
+<span class="sd">you can declare other sampling time in application as vairable ``Ts``</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Mod_PowerTrain"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_PowerTrain">[docs]</a><span class="k">class</span> <span class="nc">Mod_PowerTrain</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Electric vhielc powertrain model</span>
+
+<span class="sd">    ConfigVariables:</span>
+<span class="sd">        * conf_rm_mot: motor registance [ohm].</span>
+<span class="sd">        * conf_lm_mot: motor electric induction [Hennry]</span>
+<span class="sd">        * conf_kb_mot: motor back emp coeff [-]</span>
+<span class="sd">        * conf_kt_mot: motor torque constant [Nm/A]</span>
+<span class="sd">        * conf_jm_mot: motor inertia [kg*m^2/rad..?]</span>
+<span class="sd">        * conf_trq_gain: torque efficiency [-]</span>
+<span class="sd">        * conf_rd_gear: reduction gear ratio [-]</span>
+<span class="sd">        * conf_ks_shaft: shaft stifness [Nm/rad]</span>
+
+<span class="sd">    Submodules:</span>
+<span class="sd">        * Motor_config: set config variables</span>
+<span class="sd">        * DriveTrain_config: set config variables</span>
+<span class="sd">        * Motor_driven: Driven motor</span>
+<span class="sd">        * Motor_control: Control motor torque</span>
+<span class="sd">        * Motor_elect_dynamics: 1st order dynamics for motor electric system</span>
+<span class="sd">        * Motor_mech_dynamics: 1st order dynamics for motor mechanical system</span>
+<span class="sd">        * Drive_shaft_dynamics: 1st order dynamics for shaft rotational system</span>
+<span class="sd">        * Motor_torque_system: set motor voltage</span>
+
+<span class="sd">    Operation:</span>
+<span class="sd">        Motor_control module can control the motor to desired torque::</span>
+
+<span class="sd">            # Module_name(in//out)</span>
+<span class="sd">            Motor_control(t_mot, w_mot, t_load // des_torque)</span>
+<span class="sd">                &gt;&gt; Motor_driven(t_mot, w_mot, t_load // v_mot)</span>
+<span class="sd">                    &gt;&gt; Motor_elec_dynamics, Motor_mech_dynamics, Drive_shaft_dynamics</span>
+<span class="sd">                &gt;&gt; Motor_torque_system(v_mot // des_torque)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w_mot</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t_mot</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t_load</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Motor_config</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DriveTrain_config</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()[</span><span class="s1">&#39;Ts&#39;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="Mod_PowerTrain.Motor_config"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_PowerTrain.Motor_config">[docs]</a>    <span class="k">def</span> <span class="nf">Motor_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conf_rm</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">conf_lm</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">conf_kb</span> <span class="o">=</span> <span class="mf">6.5e-4</span><span class="p">,</span> <span class="n">conf_kt</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">conf_jm</span> <span class="o">=</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="n">conf_trq_gain</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Motor parameter configuration</span>
+
+<span class="sd">        Parameters not specified are declared as default values</span>
+
+<span class="sd">        If you want set a specific parameter don&#39;t use this function,</span>
+<span class="sd">        just type::</span>
+
+<span class="sd">            &gt;&gt;&gt; Mod_PowerTrain.conf_rm_mot = 0.2</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            Motor parameter values, default values are setted</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_rm_mot</span> <span class="o">=</span> <span class="n">conf_rm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_lm_mot</span> <span class="o">=</span> <span class="n">conf_lm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_kb_mot</span> <span class="o">=</span> <span class="n">conf_kb</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_kt_mot</span> <span class="o">=</span> <span class="n">conf_kt</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_jm_mot</span> <span class="o">=</span> <span class="n">conf_jm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_trq_gain</span> <span class="o">=</span> <span class="n">conf_trq_gain</span></div>
+
+
+<div class="viewcode-block" id="Mod_PowerTrain.DriveTrain_config"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_PowerTrain.DriveTrain_config">[docs]</a>    <span class="k">def</span> <span class="nf">DriveTrain_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conf_rd</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span> <span class="n">conf_ks</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Drivetrain parameter configuration</span>
+
+<span class="sd">        Parameters not specified are declared as default values</span>
+
+<span class="sd">        If you want set a specific parameter don&#39;t use this function,</span>
+<span class="sd">        just type::</span>
+
+<span class="sd">            &gt;&gt;&gt; Mod_PowerTrain.conf_rd_gear = 7</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * Driver shaft parameter values, default values are setted</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_rd_gear</span> <span class="o">=</span> <span class="n">conf_rd</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_ks_shaft</span> <span class="o">=</span> <span class="n">conf_ks</span></div>
+
+<div class="viewcode-block" id="Mod_PowerTrain.Motor_driven"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_PowerTrain.Motor_driven">[docs]</a>    <span class="k">def</span> <span class="nf">Motor_driven</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v_in</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">w_shaft</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Motor driven function</span>
+
+<span class="sd">        Generate motor output(torque, speed) and load torque according to input voltage and wheel speed (shaft speed = wheel speed)</span>
+
+<span class="sd">        Contain theree modules ``Elecic dynamics``, ``Menahicla dynamics``, ``Shaft dynamics``</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * v_in: motor input voltage [V]</span>
+<span class="sd">            * w_shaft: rotational speed of drive shaft from body model [rad/s]</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            * t_mot: motor torque [Nm]</span>
+<span class="sd">            * w_mot: motor rotational speed [rad/s]</span>
+<span class="sd">            * t_load: load torque from body model [Nm]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Elec motor model: Motor torque --&gt; Mech motor model: Motor speed --&gt; Drive shaft model: Load torque</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t_mot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Motor_elec_dynamics</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">t_mot</span><span class="p">,</span> <span class="n">v_in</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_mot</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w_mot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Motor_mech_dynamics</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">w_mot</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_mot</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_load</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t_load</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Drive_shaft_dynamics</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">t_load</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_mot</span><span class="p">,</span> <span class="n">w_shaft</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">w_mot</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_mot</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_load</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Mod_PowerTrain.Motor_control"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_PowerTrain.Motor_control">[docs]</a>    <span class="k">def</span> <span class="nf">Motor_control</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t_mot_des</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">w_shaft</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Function overview here</span>
+
+<span class="sd">        Functional description</span>
+
+<span class="sd">        Code example wirght follows::</span>
+
+<span class="sd">            &gt;&gt;&gt; [w_mot, t_mot, t_load] = Motor_control(t_mot_des)</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * Input parameters here</span>
+<span class="sd">            * t_mot_des:</span>
+<span class="sd">            * w_shaft:</span>
+<span class="sd">            * ...</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            * Return of function here</span>
+<span class="sd">            * w_mot: motor rotational speed [rad/s]</span>
+<span class="sd">            * t_load: load torque from body model [Nm]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">v_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Motor_torque_system</span><span class="p">(</span><span class="n">t_mot_des</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Motor_driven</span><span class="p">(</span><span class="n">v_in</span><span class="p">,</span> <span class="n">w_shaft</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">w_mot</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_mot</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_load</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Mod_PowerTrain.Motor_elec_dynamics"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_PowerTrain.Motor_elec_dynamics">[docs]</a>    <span class="k">def</span> <span class="nf">Motor_elec_dynamics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t_mot</span><span class="p">,</span> <span class="n">v_in</span><span class="p">,</span> <span class="n">w_mot</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Function overview here</span>
+
+<span class="sd">        Functional description</span>
+
+<span class="sd">        Code example wirght follows::</span>
+
+<span class="sd">            &gt;&gt;&gt; [w_mot, t_mot, t_load] = Motor_control(t_mot_des)</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * Input parameters here</span>
+<span class="sd">            * t_mot_des:</span>
+<span class="sd">            * w_shaft:</span>
+<span class="sd">            * ...</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            * Return of function here</span>
+<span class="sd">            * w_mot: motor rotational speed [rad/s]</span>
+<span class="sd">            * t_load: load torque from body model [Nm]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Motor torque calculation</span>
+        <span class="n">t_mot</span> <span class="o">=</span> <span class="n">t_mot</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_rm_mot</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_lm_mot</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span><span class="p">)</span> \
+        <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_kt_mot</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_lm_mot</span> <span class="o">*</span> <span class="p">(</span><span class="n">v_in</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_kb_mot</span> <span class="o">*</span> <span class="n">w_mot</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">t_mot</span></div>
+
+<div class="viewcode-block" id="Mod_PowerTrain.Motor_mech_dynamics"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_PowerTrain.Motor_mech_dynamics">[docs]</a>    <span class="k">def</span> <span class="nf">Motor_mech_dynamics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w_mot</span><span class="p">,</span> <span class="n">t_mot</span><span class="p">,</span> <span class="n">t_load</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Function overview here</span>
+
+<span class="sd">        Functional description</span>
+
+<span class="sd">        Code example wirght follows::</span>
+
+<span class="sd">            &gt;&gt;&gt; [w_mot, t_mot, t_load] = Motor_control(t_mot_des)</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * Input parameters here</span>
+<span class="sd">            * t_mot_des:</span>
+<span class="sd">            * w_shaft:</span>
+<span class="sd">            * ...</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            * Return of function here</span>
+<span class="sd">            * w_mot: motor rotational speed [rad/s]</span>
+<span class="sd">            * t_load: load torque from body model [Nm]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Motor speed calculation</span>
+        <span class="n">w_mot</span> <span class="o">=</span>  <span class="n">w_mot</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span><span class="o">*</span><span class="p">(</span><span class="n">t_mot</span> <span class="o">-</span> <span class="n">t_load</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_rd_gear</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_jm_mot</span>
+        <span class="k">return</span> <span class="n">w_mot</span></div>
+
+<div class="viewcode-block" id="Mod_PowerTrain.Drive_shaft_dynamics"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_PowerTrain.Drive_shaft_dynamics">[docs]</a>    <span class="k">def</span> <span class="nf">Drive_shaft_dynamics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t_load</span><span class="p">,</span> <span class="n">w_mot</span><span class="p">,</span> <span class="n">w_shaft</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Function overview here</span>
+
+<span class="sd">        Functional description</span>
+
+<span class="sd">        Code example wirght follows::</span>
+
+<span class="sd">            &gt;&gt;&gt; [w_mot, t_mot, t_load] = Motor_control(t_mot_des)</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * Input parameters here</span>
+<span class="sd">            * t_mot_des:</span>
+<span class="sd">            * w_shaft:</span>
+<span class="sd">            * ...</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            * Return of function here</span>
+<span class="sd">            * w_mot: motor rotational speed [rad/s]</span>
+<span class="sd">            * t_load: load torque from body model [Nm]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">t_load</span> <span class="o">=</span> <span class="n">t_load</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_ks_shaft</span><span class="o">*</span><span class="p">(</span><span class="n">w_mot</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_rd_gear</span> <span class="o">-</span> <span class="n">w_shaft</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">t_load</span></div>
+
+<div class="viewcode-block" id="Mod_PowerTrain.Motor_torque_system"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_PowerTrain.Motor_torque_system">[docs]</a>    <span class="k">def</span> <span class="nf">Motor_torque_system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t_mot_des</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Function overview here</span>
+
+<span class="sd">        Functional description</span>
+
+<span class="sd">        Code example wirght follows::</span>
+
+<span class="sd">            &gt;&gt;&gt; [w_mot, t_mot, t_load] = Motor_control(t_mot_des)</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * Input parameters here</span>
+<span class="sd">            * t_mot_des:</span>
+<span class="sd">            * w_shaft:</span>
+<span class="sd">            * ...</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            * Return of function here</span>
+<span class="sd">            * w_mot: motor rotational speed [rad/s]</span>
+<span class="sd">            * t_load: load torque from body model [Nm]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">v_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_trq_gain</span> <span class="o">*</span> <span class="n">t_mot_des</span>
+        <span class="k">return</span> <span class="n">v_in</span></div></div>
+
+<div class="viewcode-block" id="Mod_Body"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Body">[docs]</a><span class="k">class</span> <span class="nc">Mod_Body</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Module description here</span>
+
+<span class="sd">    ConfigVariables:</span>
+<span class="sd">        * conf_rw_wheel</span>
+<span class="sd">        * conf_jw_body</span>
+<span class="sd">        * conf_brk_coef</span>
+<span class="sd">        * conf_acc_coef</span>
+<span class="sd">        * conf_veh_len</span>
+<span class="sd">        * ...</span>
+
+<span class="sd">    Submodules:</span>
+<span class="sd">        * Body_config:</span>
+<span class="sd">        * Dyn_config:</span>
+<span class="sd">        * Lon_driven_in:</span>
+<span class="sd">        * ...</span>
+
+<span class="sd">    Operation:</span>
+<span class="sd">        Description operation here::</span>
+
+<span class="sd">            !!!Make operation diagram here!!!</span>
+<span class="sd">            # Module_name(in//out)</span>
+<span class="sd">            Motor_control(t_mot, w_mot // des_torque)</span>
+<span class="sd">                &gt;&gt; Motor_driven(t_mot, w_mot // v_mot)</span>
+<span class="sd">                    &gt;&gt; Motor_elec_dynamics, Motor_mech_dynamics, Drive_shaft_dynamics</span>
+<span class="sd">                &gt;&gt; Motor_torque_system(v_mot // des_torque)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w_wheel</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vel_veh</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">the_wheel</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t_brake</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t_mot_des</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t_drag</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Body_config</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Dyn_config</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()[</span><span class="s1">&#39;Ts&#39;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="Mod_Body.Body_config"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Body.Body_config">[docs]</a>    <span class="k">def</span> <span class="nf">Body_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conf_rw_wheel</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">,</span> <span class="n">conf_jw_body</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">conf_brk_coef</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">conf_acc_coef</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">conf_veh_len</span> <span class="o">=</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Function overview here</span>
+
+<span class="sd">        Functional description</span>
+
+<span class="sd">        Code example wirght follows::</span>
+
+<span class="sd">            &gt;&gt;&gt; [w_mot, t_mot, t_load] = Motor_control(t_mot_des)</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * Input parameters here</span>
+<span class="sd">            * t_mot_des:</span>
+<span class="sd">            * w_shaft:</span>
+<span class="sd">            * ...</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            * Return of function here</span>
+<span class="sd">            * w_mot: motor rotational speed [rad/s]</span>
+<span class="sd">            * t_load: load torque from body model [Nm]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_rw_wheel</span> <span class="o">=</span> <span class="n">conf_rw_wheel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_jw_body</span> <span class="o">=</span> <span class="n">conf_jw_body</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_brk_coef</span> <span class="o">=</span> <span class="n">conf_brk_coef</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_acc_coef</span> <span class="o">=</span> <span class="n">conf_acc_coef</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_veh_len</span> <span class="o">=</span> <span class="n">conf_veh_len</span></div>
+
+<div class="viewcode-block" id="Mod_Body.Dyn_config"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Body.Dyn_config">[docs]</a>    <span class="k">def</span> <span class="nf">Dyn_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conf_airdrag</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="n">conf_add_weight</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Function overview here</span>
+
+<span class="sd">        Functional description</span>
+
+<span class="sd">        Code example wirght follows::</span>
+
+<span class="sd">            &gt;&gt;&gt; [w_mot, t_mot, t_load] = Motor_control(t_mot_des)</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * Input parameters here</span>
+<span class="sd">            * t_mot_des:</span>
+<span class="sd">            * w_shaft:</span>
+<span class="sd">            * ...</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            * Return of function here</span>
+<span class="sd">            * w_mot: motor rotational speed [rad/s]</span>
+<span class="sd">            * t_load: load torque from body model [Nm]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_drag_lon</span> <span class="o">=</span> <span class="n">conf_airdrag</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_weight_veh</span> <span class="o">=</span> <span class="n">conf_add_weight</span></div>
+
+<div class="viewcode-block" id="Mod_Body.Lon_driven_in"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Body.Lon_driven_in">[docs]</a>    <span class="k">def</span> <span class="nf">Lon_driven_in</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">u_acc</span><span class="p">,</span> <span class="n">u_brake</span><span class="p">,</span> <span class="n">veh_vel</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Function overview here</span>
+
+<span class="sd">        Functional description</span>
+
+<span class="sd">        Code example wirght follows::</span>
+
+<span class="sd">            &gt;&gt;&gt; [w_mot, t_mot, t_load] = Motor_control(t_mot_des)</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * Input parameters here</span>
+<span class="sd">            * t_mot_des:</span>
+<span class="sd">            * w_shaft:</span>
+<span class="sd">            * ...</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            * Return of function here</span>
+<span class="sd">            * w_mot: motor rotational speed [rad/s]</span>
+<span class="sd">            * t_load: load torque from body model [Nm]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t_brake</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Brake_system</span><span class="p">(</span><span class="n">u_brake</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t_mot_des</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Acc_system</span><span class="p">(</span><span class="n">u_acc</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t_drag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Drag_system</span><span class="p">(</span><span class="n">veh_vel</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_mot_des</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_brake</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_drag</span></div>
+
+<div class="viewcode-block" id="Mod_Body.Lon_driven_out"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Body.Lon_driven_out">[docs]</a>    <span class="k">def</span> <span class="nf">Lon_driven_out</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">t_load</span><span class="p">,</span> <span class="n">t_brake</span><span class="p">,</span> <span class="n">t_drag</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Function overview here</span>
+
+<span class="sd">        Functional description</span>
+
+<span class="sd">        Code example wirght follows::</span>
+
+<span class="sd">            &gt;&gt;&gt; [w_mot, t_mot, t_load] = Motor_control(t_mot_des)</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * Input parameters here</span>
+<span class="sd">            * t_mot_des:</span>
+<span class="sd">            * w_shaft:</span>
+<span class="sd">            * ...</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            * Return of function here</span>
+<span class="sd">            * w_mot: motor rotational speed [rad/s]</span>
+<span class="sd">            * t_load: load torque from body model [Nm]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w_wheel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Tire_dynamics</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">w_wheel</span><span class="p">,</span> <span class="n">t_load</span><span class="p">,</span> <span class="n">t_brake</span><span class="p">,</span> <span class="n">t_drag</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vel_veh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_wheel</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_rw_wheel</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">w_wheel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vel_veh</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Mod_Body.Lat_driven"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Body.Lat_driven">[docs]</a>    <span class="k">def</span> <span class="nf">Lat_driven</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">u_steer</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Function overview here</span>
+
+<span class="sd">        Functional description</span>
+
+<span class="sd">        Code example wirght follows::</span>
+
+<span class="sd">            &gt;&gt;&gt; [w_mot, t_mot, t_load] = Motor_control(t_mot_des)</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * Input parameters here</span>
+<span class="sd">            * t_mot_des:</span>
+<span class="sd">            * w_shaft:</span>
+<span class="sd">            * ...</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            * Return of function here</span>
+<span class="sd">            * w_mot: motor rotational speed [rad/s]</span>
+<span class="sd">            * t_load: load torque from body model [Nm]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">the_wheel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Lat_dynamics</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">the_wheel</span><span class="p">,</span> <span class="n">u_steer</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">the_wheel</span></div>
+
+<div class="viewcode-block" id="Mod_Body.Lat_dynamics"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Body.Lat_dynamics">[docs]</a>    <span class="k">def</span> <span class="nf">Lat_dynamics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">the_wheel</span><span class="p">,</span> <span class="n">u_steer</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Function overview here</span>
+
+<span class="sd">        Functional description</span>
+
+<span class="sd">        Code example wirght follows::</span>
+
+<span class="sd">            &gt;&gt;&gt; [w_mot, t_mot, t_load] = Motor_control(t_mot_des)</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * Input parameters here</span>
+<span class="sd">            * t_mot_des:</span>
+<span class="sd">            * w_shaft:</span>
+<span class="sd">            * ...</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            * Return of function here</span>
+<span class="sd">            * w_mot: motor rotational speed [rad/s]</span>
+<span class="sd">            * t_load: load torque from body model [Nm]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">the_wheel</span> <span class="o">=</span> <span class="n">the_wheel</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span><span class="o">/</span><span class="mf">0.2</span><span class="o">*</span><span class="p">(</span><span class="n">u_steer</span> <span class="o">-</span> <span class="n">the_wheel</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">the_wheel</span></div>
+
+<div class="viewcode-block" id="Mod_Body.Tire_dynamics"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Body.Tire_dynamics">[docs]</a>    <span class="k">def</span> <span class="nf">Tire_dynamics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w_wheel</span><span class="p">,</span> <span class="n">t_load</span><span class="p">,</span> <span class="n">t_brake</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">t_drag</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Function overview here</span>
+
+<span class="sd">        Functional description</span>
+
+<span class="sd">        Code example wirght follows::</span>
+
+<span class="sd">            &gt;&gt;&gt; [w_mot, t_mot, t_load] = Motor_control(t_mot_des)</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * Input parameters here</span>
+<span class="sd">            * t_mot_des:</span>
+<span class="sd">            * w_shaft:</span>
+<span class="sd">            * ...</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            * Return of function here</span>
+<span class="sd">            * w_mot: motor rotational speed [rad/s]</span>
+<span class="sd">            * t_load: load torque from body model [Nm]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">w_wheel</span> <span class="o">=</span> <span class="n">w_wheel</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_jw_body</span><span class="o">*</span><span class="p">(</span><span class="n">t_load</span> <span class="o">-</span> <span class="n">t_drag</span> <span class="o">-</span> <span class="n">t_brake</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">w_wheel</span></div>
+
+<div class="viewcode-block" id="Mod_Body.Brake_system"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Body.Brake_system">[docs]</a>    <span class="k">def</span> <span class="nf">Brake_system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">u_brake</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_wheel</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">t_brake</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">t_brake</span> <span class="o">=</span> <span class="n">u_brake</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_brk_coef</span>
+        <span class="k">return</span> <span class="n">t_brake</span></div>
+
+<div class="viewcode-block" id="Mod_Body.Acc_system"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Body.Acc_system">[docs]</a>    <span class="k">def</span> <span class="nf">Acc_system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">u_acc</span><span class="p">):</span>
+        <span class="n">t_mot_des</span> <span class="o">=</span> <span class="n">u_acc</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_acc_coef</span>
+        <span class="k">return</span> <span class="n">t_mot_des</span></div>
+
+<div class="viewcode-block" id="Mod_Body.Drag_system"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Body.Drag_system">[docs]</a>    <span class="k">def</span> <span class="nf">Drag_system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">veh_vel</span><span class="p">):</span>
+        <span class="n">t_drag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_drag_lon</span> <span class="o">*</span> <span class="n">veh_vel</span>
+        <span class="k">if</span> <span class="n">t_drag</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">t_drag</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="n">t_drag</span></div></div>
+
+
+<div class="viewcode-block" id="Mod_Veh"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Veh">[docs]</a><span class="k">class</span> <span class="nc">Mod_Veh</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Module description here</span>
+
+<span class="sd">    ConfigVariables:</span>
+<span class="sd">        * conf_rw_wheel</span>
+<span class="sd">        * conf_jw_body</span>
+<span class="sd">        * conf_brk_coef</span>
+<span class="sd">        * conf_acc_coef</span>
+<span class="sd">        * conf_veh_len</span>
+<span class="sd">        * ...</span>
+
+<span class="sd">    Submodules:</span>
+<span class="sd">        * Body_config:</span>
+<span class="sd">        * Dyn_config:</span>
+<span class="sd">        * Lon_driven_in:</span>
+<span class="sd">        * ...</span>
+
+<span class="sd">    Initialization:</span>
+<span class="sd">        * Include ``powertrain``, ``body`` models</span>
+
+<span class="sd">    Operation:</span>
+<span class="sd">        Description operation here::</span>
+
+<span class="sd">            !!!Make operation diagram here!!!</span>
+<span class="sd">            # Module_name(in//out)</span>
+<span class="sd">            Motor_control(t_mot, w_mot // des_torque)</span>
+<span class="sd">                &gt;&gt; Motor_driven(t_mot, w_mot // v_mot)</span>
+<span class="sd">                    &gt;&gt; Motor_elec_dynamics, Motor_mech_dynamics, Drive_shaft_dynamics</span>
+<span class="sd">                &gt;&gt; Motor_torque_system(v_mot // des_torque)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">powertrain_model</span><span class="p">,</span><span class="n">body_model</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ModPower</span> <span class="o">=</span> <span class="n">powertrain_model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ModBody</span> <span class="o">=</span> <span class="n">body_model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()[</span><span class="s1">&#39;Ts&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Set_initState</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Mod_Veh.Set_initState"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Veh.Set_initState">[docs]</a>    <span class="k">def</span> <span class="nf">Set_initState</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_veh</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">y_veh</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">s_veh</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">n_veh</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">psi_veh</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos_x_veh</span> <span class="o">=</span> <span class="n">x_veh</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos_y_veh</span> <span class="o">=</span> <span class="n">y_veh</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos_s_veh</span> <span class="o">=</span> <span class="n">s_veh</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos_n_veh</span> <span class="o">=</span> <span class="n">n_veh</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">psi_veh</span> <span class="o">=</span> <span class="n">psi_veh</span></div>
+
+<div class="viewcode-block" id="Mod_Veh.Veh_driven"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Veh.Veh_driven">[docs]</a>    <span class="k">def</span> <span class="nf">Veh_driven</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">u_acc</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">u_brake</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">u_steer</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">t_load</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ModPower</span><span class="o">.</span><span class="n">t_load</span>
+        <span class="n">w_shaft</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ModBody</span><span class="o">.</span><span class="n">w_wheel</span>
+        <span class="n">veh_vel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ModBody</span><span class="o">.</span><span class="n">vel_veh</span>
+        <span class="c1"># Lateral motion</span>
+        <span class="n">the_wheel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ModBody</span><span class="o">.</span><span class="n">Lat_driven</span><span class="p">(</span><span class="n">u_steer</span><span class="p">)</span>
+        <span class="c1"># Longitudinal motion</span>
+        <span class="c1"># Body_Lon_in --&gt; Powertrain_Motor --&gt; Body_Lon_out</span>
+        <span class="p">[</span><span class="n">t_mot_des</span><span class="p">,</span> <span class="n">t_brake</span><span class="p">,</span> <span class="n">t_drag</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ModBody</span><span class="o">.</span><span class="n">Lon_driven_in</span><span class="p">(</span><span class="n">u_acc</span><span class="p">,</span> <span class="n">u_brake</span><span class="p">,</span> <span class="n">veh_vel</span><span class="p">)</span>
+        <span class="p">[</span><span class="n">w_mot</span><span class="p">,</span> <span class="n">t_mot</span><span class="p">,</span> <span class="n">t_load</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ModPower</span><span class="o">.</span><span class="n">Motor_control</span><span class="p">(</span><span class="n">t_mot_des</span><span class="p">,</span> <span class="n">w_shaft</span><span class="p">)</span>
+        <span class="p">[</span><span class="n">w_wheel</span><span class="p">,</span> <span class="n">vel_veh</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ModBody</span><span class="o">.</span><span class="n">Lon_driven_out</span><span class="p">(</span><span class="n">t_load</span><span class="p">,</span> <span class="n">t_brake</span><span class="p">,</span> <span class="n">t_drag</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">vel_veh</span><span class="p">,</span> <span class="n">the_wheel</span></div>
+
+<div class="viewcode-block" id="Mod_Veh.Veh_position_update"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Veh.Veh_position_update">[docs]</a>    <span class="k">def</span> <span class="nf">Veh_position_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vel_veh</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">the_wheel</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">veh_len</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ModBody</span><span class="o">.</span><span class="n">conf_veh_len</span>
+        <span class="n">ang_veh</span> <span class="o">=</span> <span class="n">the_wheel</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">psi_veh</span>
+        <span class="n">x_dot</span> <span class="o">=</span> <span class="n">vel_veh</span><span class="o">*</span><span class="n">cos</span><span class="p">(</span><span class="n">ang_veh</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos_x_veh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos_x_veh</span> <span class="o">+</span> <span class="n">x_dot</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span>
+        <span class="n">y_dot</span> <span class="o">=</span> <span class="n">vel_veh</span><span class="o">*</span><span class="n">sin</span><span class="p">(</span><span class="n">ang_veh</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos_y_veh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos_y_veh</span> <span class="o">+</span> <span class="n">y_dot</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span>
+        <span class="n">s_dot</span> <span class="o">=</span> <span class="n">vel_veh</span><span class="o">*</span><span class="n">cos</span><span class="p">(</span><span class="n">the_wheel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos_s_veh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos_s_veh</span> <span class="o">+</span> <span class="n">s_dot</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span>
+        <span class="n">n_dot</span> <span class="o">=</span> <span class="n">vel_veh</span><span class="o">*</span><span class="n">sin</span><span class="p">(</span><span class="n">the_wheel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos_n_veh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos_n_veh</span> <span class="o">+</span> <span class="n">n_dot</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span>
+        <span class="n">psi_dot</span> <span class="o">=</span> <span class="n">vel_veh</span><span class="o">/</span><span class="n">veh_len</span><span class="o">*</span><span class="n">the_wheel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">psi_veh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">psi_veh</span> <span class="o">+</span> <span class="n">psi_dot</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pos_x_veh</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos_y_veh</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos_s_veh</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos_n_veh</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">psi_veh</span><span class="p">]</span></div></div>
+<span class="c1">#%% 2. Maneuver</span>
+    <span class="c1"># 1. Driver</span>
+    <span class="c1"># 2. Behavior(Driver)     # Recognition integrated in behavior</span>
+<div class="viewcode-block" id="Mod_Driver"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Driver">[docs]</a><span class="k">class</span> <span class="nc">Mod_Driver</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Module description here</span>
+
+<span class="sd">    ConfigVariables:</span>
+<span class="sd">        * conf_rw_wheel</span>
+<span class="sd">        * conf_jw_body</span>
+<span class="sd">        * conf_brk_coef</span>
+<span class="sd">        * conf_acc_coef</span>
+<span class="sd">        * conf_veh_len</span>
+<span class="sd">        * ...</span>
+
+<span class="sd">    Submodules:</span>
+<span class="sd">        * Body_config:</span>
+<span class="sd">        * Dyn_config:</span>
+<span class="sd">        * Lon_driven_in:</span>
+<span class="sd">        * ...</span>
+
+<span class="sd">    Operation:</span>
+<span class="sd">        Description operation here::</span>
+
+<span class="sd">            !!!Make operation diagram here!!!</span>
+<span class="sd">            # Module_name(in//out)</span>
+<span class="sd">            Motor_control(t_mot, w_mot // des_torque)</span>
+<span class="sd">                &gt;&gt; Motor_driven(t_mot, w_mot // v_mot)</span>
+<span class="sd">                    &gt;&gt; Motor_elec_dynamics, Motor_mech_dynamics, Drive_shaft_dynamics</span>
+<span class="sd">                &gt;&gt; Motor_torque_system(v_mot // des_torque)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_char</span><span class="p">(</span><span class="s1">&#39;Normal&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Mod_Driver.set_char"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Driver.set_char">[docs]</a>    <span class="k">def</span> <span class="nf">set_char</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">DriverChar</span> <span class="o">=</span> <span class="s1">&#39;Normal&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">DriverChar</span> <span class="o">==</span> <span class="s1">&#39;Normal&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_driver_param</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="mf">0.001</span><span class="p">,</span> <span class="mf">0.0001</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>   <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>    <span class="mf">1.5</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">DriverChar</span> <span class="o">==</span> <span class="s1">&#39;Aggressive&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_driver_param</span><span class="p">(</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.15</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="mf">0.001</span><span class="p">,</span> <span class="mf">0.0001</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>   <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>    <span class="mf">1.5</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">DriverChar</span> <span class="o">==</span> <span class="s1">&#39;Defensive&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_driver_param</span><span class="p">(</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="mf">0.001</span><span class="p">,</span> <span class="mf">0.0001</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>   <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>    <span class="mf">1.5</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Set the driver only = [&#39;&#39;Normal&#39;&#39;, &#39;&#39;Aggressive&#39;&#39;, &#39;&#39;Defensive&#39;&#39;]&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_driver_param</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="mf">0.001</span><span class="p">,</span> <span class="mf">0.0001</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>   <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>    <span class="mf">1.5</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span></div>
+<div class="viewcode-block" id="Mod_Driver.set_driver_param"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Driver.set_driver_param">[docs]</a>    <span class="k">def</span> <span class="nf">set_driver_param</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">P_gain_lon</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">I_gain_lon</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">D_gain_lon</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">P_gain_lat</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">I_gain_lat</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">D_gain_lat</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">P_gain_yaw</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">I_gain_yaw</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">D_gain_yaw</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">shift_time</span> <span class="o">=</span> <span class="mf">1.5</span><span class="p">,</span> <span class="n">max_acc</span> <span class="o">=</span> <span class="mi">4</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">P_gain_lon</span> <span class="o">=</span> <span class="n">P_gain_lon</span><span class="p">;</span> <span class="bp">self</span><span class="o">.</span><span class="n">I_gain_lon</span> <span class="o">=</span> <span class="n">I_gain_lon</span><span class="p">;</span> <span class="bp">self</span><span class="o">.</span><span class="n">D_gain_lon</span> <span class="o">=</span> <span class="n">D_gain_lon</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">P_gain_lat</span> <span class="o">=</span> <span class="n">P_gain_lat</span><span class="p">;</span> <span class="bp">self</span><span class="o">.</span><span class="n">I_gain_lat</span> <span class="o">=</span> <span class="n">I_gain_lat</span><span class="p">;</span> <span class="bp">self</span><span class="o">.</span><span class="n">D_gain_lat</span> <span class="o">=</span> <span class="n">D_gain_lat</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">P_gain_yaw</span> <span class="o">=</span> <span class="n">P_gain_yaw</span><span class="p">;</span> <span class="bp">self</span><span class="o">.</span><span class="n">I_gain_yaw</span> <span class="o">=</span> <span class="n">I_gain_yaw</span><span class="p">;</span> <span class="bp">self</span><span class="o">.</span><span class="n">D_gain_yaw</span> <span class="o">=</span> <span class="n">D_gain_yaw</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shift_time</span> <span class="o">=</span> <span class="n">shift_time</span><span class="p">;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_acc</span> <span class="o">=</span> <span class="n">max_acc</span></div></div>
+
+<div class="viewcode-block" id="Mod_Behavior"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Behavior">[docs]</a><span class="k">class</span> <span class="nc">Mod_Behavior</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Module description here</span>
+
+<span class="sd">    ConfigVariables:</span>
+<span class="sd">        * conf_rw_wheel</span>
+<span class="sd">        * conf_jw_body</span>
+<span class="sd">        * conf_brk_coef</span>
+<span class="sd">        * conf_acc_coef</span>
+<span class="sd">        * conf_veh_len</span>
+<span class="sd">        * ...</span>
+
+<span class="sd">    Submodules:</span>
+<span class="sd">        * Body_config:</span>
+<span class="sd">        * Dyn_config:</span>
+<span class="sd">        * Lon_driven_in:</span>
+<span class="sd">        * ...</span>
+
+<span class="sd">    Operation:</span>
+<span class="sd">        Description operation here::</span>
+
+<span class="sd">            !!!Make operation diagram here!!!</span>
+<span class="sd">            # Module_name(in//out)</span>
+<span class="sd">            Motor_control(t_mot, w_mot // des_torque)</span>
+<span class="sd">                &gt;&gt; Motor_driven(t_mot, w_mot // v_mot)</span>
+<span class="sd">                    &gt;&gt; Motor_elec_dynamics, Motor_mech_dynamics, Drive_shaft_dynamics</span>
+<span class="sd">                &gt;&gt; Motor_torque_system(v_mot // des_torque)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Driver</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stStaticList</span> <span class="o">=</span> <span class="n">type_drvstate</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stDynamicList</span> <span class="o">=</span> <span class="n">type_drvstate</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stStatic</span> <span class="o">=</span> <span class="n">type_drvstate</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stDynamic</span> <span class="o">=</span> <span class="n">type_drvstate</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Maneuver_config</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Drver_set</span><span class="p">(</span><span class="n">Driver</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Ts_Loc</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()[</span><span class="s1">&#39;Ts&#39;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="Mod_Behavior.Lon_control"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Behavior.Lon_control">[docs]</a>    <span class="k">def</span> <span class="nf">Lon_control</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">veh_vel_set</span><span class="p">,</span> <span class="n">veh_vel</span><span class="p">):</span>
+        <span class="c1"># Value initialization</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;timer_count&#39;</span> <span class="ow">in</span> <span class="nb">locals</span><span class="p">():</span>
+            <span class="n">timer_count</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">shift_flag_ac</span> <span class="o">=</span> <span class="s1">&#39;on&#39;</span>
+            <span class="n">shift_flag_br</span> <span class="o">=</span> <span class="s1">&#39;on&#39;</span>
+
+        <span class="n">trq_set</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Lon_Controller</span><span class="o">.</span><span class="n">Control</span><span class="p">(</span><span class="n">veh_vel_set</span><span class="p">,</span><span class="n">veh_vel</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">trq_set</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">shift_flag_ac</span> <span class="o">==</span> <span class="s1">&#39;on&#39;</span><span class="p">):</span>
+            <span class="n">stControl</span> <span class="o">=</span> <span class="s1">&#39;acc&#39;</span>
+            <span class="n">shift_flag_ac</span> <span class="o">=</span> <span class="s1">&#39;on&#39;</span>
+            <span class="n">shift_flag_br</span> <span class="o">=</span> <span class="s1">&#39;off&#39;</span>
+            <span class="n">timer_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">trq_set</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">shift_flag_br</span> <span class="o">==</span> <span class="s1">&#39;on&#39;</span><span class="p">):</span>
+            <span class="n">stControl</span> <span class="o">=</span> <span class="s1">&#39;brk&#39;</span>
+            <span class="n">shift_flag_ac</span> <span class="o">=</span> <span class="s1">&#39;off&#39;</span>
+            <span class="n">shift_flag_br</span> <span class="o">=</span> <span class="s1">&#39;on&#39;</span>
+            <span class="n">timer_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">stControl</span> <span class="o">=</span> <span class="s1">&#39;idle&#39;</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">shift_flag_ac</span> <span class="o">==</span> <span class="s1">&#39;on&#39;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">timer_count</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Driver</span><span class="o">.</span><span class="n">shift_time</span><span class="p">):</span>
+                <span class="n">timer_count</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">shift_flag_br</span> <span class="o">=</span> <span class="s1">&#39;on&#39;</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">shift_flag_br</span> <span class="o">==</span> <span class="s1">&#39;on&#39;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">timer_count</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Driver</span><span class="o">.</span><span class="n">shift_time</span><span class="p">):</span>
+                <span class="n">timer_count</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">shift_flag_ac</span> <span class="o">=</span> <span class="s1">&#39;on&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">timer_count</span> <span class="o">=</span> <span class="n">timer_count</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="c1"># Set value</span>
+        <span class="k">if</span> <span class="n">stControl</span> <span class="o">==</span> <span class="s1">&#39;acc&#39;</span><span class="p">:</span>
+            <span class="n">acc_out</span> <span class="o">=</span> <span class="n">trq_set</span><span class="o">/</span><span class="mi">100</span>
+            <span class="n">brk_out</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">elif</span> <span class="n">stControl</span> <span class="o">==</span> <span class="s1">&#39;brk&#39;</span><span class="p">:</span>
+            <span class="n">acc_out</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">brk_out</span> <span class="o">=</span> <span class="o">-</span><span class="n">trq_set</span><span class="o">/</span><span class="mi">100</span>
+        <span class="k">elif</span> <span class="n">stControl</span> <span class="o">==</span> <span class="s1">&#39;idle&#39;</span><span class="p">:</span>
+            <span class="n">acc_out</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">brk_out</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">acc_out</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">brk_out</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trq_set_lon</span> <span class="o">=</span> <span class="n">trq_set</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u_acc</span> <span class="o">=</span> <span class="n">acc_out</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u_brk</span> <span class="o">=</span> <span class="n">brk_out</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">acc_out</span><span class="p">,</span> <span class="n">brk_out</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Mod_Behavior.Drver_set"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Behavior.Drver_set">[docs]</a>    <span class="k">def</span> <span class="nf">Drver_set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">DriverSet</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Driver</span> <span class="o">=</span> <span class="n">DriverSet</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Lon_Controller</span> <span class="o">=</span> <span class="n">type_pid_controller</span><span class="p">(</span><span class="n">DriverSet</span><span class="o">.</span><span class="n">P_gain_lon</span><span class="p">,</span> <span class="n">DriverSet</span><span class="o">.</span><span class="n">I_gain_lon</span><span class="p">,</span> <span class="n">DriverSet</span><span class="o">.</span><span class="n">D_gain_lon</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Lat_Controller_offset</span> <span class="o">=</span> <span class="n">type_pid_controller</span><span class="p">(</span><span class="n">DriverSet</span><span class="o">.</span><span class="n">P_gain_lat</span><span class="p">,</span> <span class="n">DriverSet</span><span class="o">.</span><span class="n">I_gain_lat</span><span class="p">,</span> <span class="n">DriverSet</span><span class="o">.</span><span class="n">D_gain_lat</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Lat_Controller_yaw</span> <span class="o">=</span> <span class="n">type_pid_controller</span><span class="p">(</span><span class="n">DriverSet</span><span class="o">.</span><span class="n">P_gain_yaw</span><span class="p">,</span> <span class="n">DriverSet</span><span class="o">.</span><span class="n">I_gain_yaw</span><span class="p">,</span> <span class="n">DriverSet</span><span class="o">.</span><span class="n">D_gain_yaw</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Mod_Behavior.Maneuver_config"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Behavior.Maneuver_config">[docs]</a>    <span class="k">def</span> <span class="nf">Maneuver_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cruise_speed_set</span> <span class="o">=</span> <span class="mi">15</span><span class="p">,</span> <span class="n">mincv_speed_set</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">curve_coef</span> <span class="o">=</span> <span class="mi">1500</span><span class="p">,</span> <span class="n">transition_dis</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span> <span class="n">forecast_dis</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">cf_dis</span> <span class="o">=</span> <span class="mi">120</span><span class="p">,</span> <span class="n">lat_off</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_cruise_speed_set</span> <span class="o">=</span> <span class="n">cruise_speed_set</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_mincv_speed_set</span> <span class="o">=</span> <span class="n">mincv_speed_set</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_curve_coef</span> <span class="o">=</span> <span class="n">curve_coef</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_transition_dis</span> <span class="o">=</span> <span class="n">transition_dis</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_forecast_dis</span> <span class="o">=</span> <span class="n">forecast_dis</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_cf_dis</span> <span class="o">=</span> <span class="n">cf_dis</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_lat_off</span> <span class="o">=</span> <span class="n">lat_off</span></div>
+
+<div class="viewcode-block" id="Mod_Behavior.Static_state_recog"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Behavior.Static_state_recog">[docs]</a>    <span class="k">def</span> <span class="nf">Static_state_recog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">static_obj_in</span><span class="p">,</span> <span class="n">veh_position_s</span><span class="p">,</span> <span class="n">road_len</span><span class="p">):</span>
+        <span class="c1"># Define local state and objectives</span>
+        <span class="n">stStatic</span> <span class="o">=</span> <span class="n">type_drvstate</span><span class="p">()</span>
+        <span class="n">forecast_object</span> <span class="o">=</span> <span class="n">type_objective</span><span class="p">()</span>
+        <span class="n">transition_object</span> <span class="o">=</span> <span class="n">type_objective</span><span class="p">()</span>
+        <span class="c1"># Determine map_index (forecasting, transition)</span>
+        <span class="k">if</span> <span class="nb">max</span><span class="p">(</span><span class="n">road_len</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">veh_position_s</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;========== Simulation is terminated!! ========= &#39;</span><span class="p">)</span>
+            <span class="n">stStatic</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="s1">&#39;Termination&#39;</span><span class="p">,</span><span class="s1">&#39;None&#39;</span><span class="p">,</span><span class="s1">&#39;None&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tmp_cur_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">road_len</span> <span class="o">&gt;=</span> <span class="n">veh_position_s</span><span class="p">))</span><span class="o">-</span><span class="mi">1</span>
+            <span class="n">tmp_forecast_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">road_len</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="n">tmp_cur_index</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_forecast_dis</span><span class="p">)))</span><span class="o">-</span><span class="mi">1</span>
+            <span class="n">tmp_transition_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">road_len</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="n">tmp_cur_index</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_transition_dis</span><span class="p">)))</span><span class="o">-</span><span class="mi">1</span>
+            <span class="c1"># Determine objectives from vehicle location to forecasting range</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tmp_cur_index</span><span class="p">,</span><span class="n">tmp_forecast_index</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">forecast_object</span><span class="o">.</span><span class="n">merg_object</span><span class="p">(</span><span class="n">static_obj_in</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">object_class</span><span class="p">,</span> <span class="n">static_obj_in</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">object_param</span><span class="p">,</span> <span class="n">static_obj_in</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">object_loc_s</span><span class="p">)</span>
+            <span class="c1"># Determine objectives from transition range to forecasting range</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tmp_transition_index</span><span class="p">,</span><span class="n">tmp_forecast_index</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">transition_object</span><span class="o">.</span><span class="n">merg_object</span><span class="p">(</span><span class="n">static_obj_in</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">object_class</span><span class="p">,</span> <span class="n">static_obj_in</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">object_param</span><span class="p">,</span> <span class="n">static_obj_in</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">object_loc_s</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;Tl&#39;</span> <span class="ow">in</span> <span class="n">forecast_object</span><span class="o">.</span><span class="n">object_class</span><span class="p">):</span>
+                <span class="n">tmp_Tl_index</span> <span class="o">=</span> <span class="n">forecast_object</span><span class="o">.</span><span class="n">object_class</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;Tl&#39;</span><span class="p">)</span>
+                <span class="n">tmp_Tl_param</span> <span class="o">=</span> <span class="n">forecast_object</span><span class="o">.</span><span class="n">object_param</span><span class="p">[</span><span class="n">tmp_Tl_index</span><span class="p">]</span>
+                <span class="n">tmp_Tl_loc</span> <span class="o">=</span> <span class="n">forecast_object</span><span class="o">.</span><span class="n">object_loc_s</span><span class="p">[</span><span class="n">tmp_Tl_index</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">tmp_Tl_param</span> <span class="o">==</span> <span class="s1">&#39;red&#39;</span><span class="p">:</span>
+                    <span class="n">stStatic</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="s1">&#39;Tl_stop&#39;</span><span class="p">,</span><span class="n">tmp_Tl_param</span><span class="p">,</span><span class="n">tmp_Tl_loc</span> <span class="o">-</span> <span class="n">tmp_cur_index</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s1">&#39;Curve&#39;</span> <span class="ow">in</span> <span class="n">transition_object</span><span class="o">.</span><span class="n">object_class</span><span class="p">:</span>
+                        <span class="n">tmp_cv_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">transition_object</span><span class="o">.</span><span class="n">object_class</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;Curve&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="n">tmp_cv_loc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">transition_object</span><span class="o">.</span><span class="n">object_loc_s</span><span class="p">)[</span><span class="n">tmp_cv_index</span><span class="p">])</span>
+                        <span class="n">tmp_cv_param</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">transition_object</span><span class="o">.</span><span class="n">object_param</span><span class="p">)[</span><span class="n">tmp_cv_index</span><span class="p">])</span>
+                        <span class="n">stStatic</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="s1">&#39;Curve&#39;</span><span class="p">,</span><span class="n">tmp_cv_param</span><span class="p">,</span><span class="n">tmp_cv_loc</span> <span class="o">-</span> <span class="n">tmp_cur_index</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">stStatic</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="s1">&#39;Cruise&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s1">&#39;Curve&#39;</span> <span class="ow">in</span> <span class="n">transition_object</span><span class="o">.</span><span class="n">object_class</span><span class="p">:</span>
+                    <span class="n">tmp_cv_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">transition_object</span><span class="o">.</span><span class="n">object_class</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;Curve&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">tmp_cv_loc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">transition_object</span><span class="o">.</span><span class="n">object_loc_s</span><span class="p">)[</span><span class="n">tmp_cv_index</span><span class="p">])</span>
+                    <span class="n">tmp_cv_param</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">transition_object</span><span class="o">.</span><span class="n">object_param</span><span class="p">)[</span><span class="n">tmp_cv_index</span><span class="p">])</span>
+                    <span class="n">stStatic</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="s1">&#39;Curve&#39;</span><span class="p">,</span><span class="n">tmp_cv_param</span><span class="p">,</span><span class="n">tmp_cv_loc</span> <span class="o">-</span> <span class="n">tmp_cur_index</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">stStatic</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="s1">&#39;Cruise&#39;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">stStaticList</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="n">stStatic</span><span class="o">.</span><span class="n">state</span><span class="p">,</span> <span class="n">stStatic</span><span class="o">.</span><span class="n">state_param</span><span class="p">,</span> <span class="n">stStatic</span><span class="o">.</span><span class="n">state_reldis</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">stStatic</span></div>
+
+<div class="viewcode-block" id="Mod_Behavior.Dynamic_state_recog"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Behavior.Dynamic_state_recog">[docs]</a>    <span class="k">def</span> <span class="nf">Dynamic_state_recog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pre_veh_speed</span><span class="p">,</span> <span class="n">pre_veh_reldis</span> <span class="o">=</span> <span class="mi">250</span><span class="p">):</span>
+        <span class="n">stDynamic</span> <span class="o">=</span> <span class="n">type_drvstate</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">pre_veh_reldis</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_cf_dis</span><span class="p">:</span>
+            <span class="n">stDynamic</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="s1">&#39;Cruise&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">stDynamic</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="s1">&#39;Cf&#39;</span><span class="p">,</span> <span class="n">pre_veh_speed</span><span class="p">,</span> <span class="n">pre_veh_reldis</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stDynamicList</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="n">stDynamic</span><span class="o">.</span><span class="n">state</span><span class="p">,</span> <span class="n">stDynamic</span><span class="o">.</span><span class="n">state_param</span><span class="p">,</span> <span class="n">stDynamic</span><span class="o">.</span><span class="n">state_reldis</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">stDynamic</span></div>
+
+<div class="viewcode-block" id="Mod_Behavior.Lon_vel_set"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Behavior.Lon_vel_set">[docs]</a>    <span class="k">def</span> <span class="nf">Lon_vel_set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stStatic</span><span class="p">,</span> <span class="n">stDynamic</span><span class="p">):</span>
+        <span class="c1"># Determination of velocity set from static state</span>
+        <span class="n">tmp_state_step_static</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stStatic</span><span class="o">.</span><span class="n">state</span>
+        <span class="k">if</span> <span class="n">tmp_state_step_static</span> <span class="o">==</span> <span class="s1">&#39;Cruise&#39;</span><span class="p">:</span>
+            <span class="n">veh_speed_set_static</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_cruise_speed_set</span>
+        <span class="k">elif</span> <span class="n">tmp_state_step_static</span> <span class="o">==</span> <span class="s1">&#39;Tl_stop&#39;</span><span class="p">:</span>
+            <span class="n">tmp_state_reldis_step</span> <span class="o">=</span> <span class="n">stStatic</span><span class="o">.</span><span class="n">state_reldis</span>
+            <span class="n">veh_speed_set_static</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_cruise_speed_set</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_cruise_speed_set</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_forecast_dis</span> <span class="o">-</span> <span class="n">tmp_state_reldis_step</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_forecast_dis</span>
+        <span class="k">elif</span> <span class="n">tmp_state_step_static</span> <span class="o">==</span> <span class="s1">&#39;Curve&#39;</span><span class="p">:</span>
+            <span class="n">tmp_param_step</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">stStatic</span><span class="o">.</span><span class="n">state_param</span><span class="p">)</span>
+            <span class="c1"># output saturation</span>
+            <span class="n">veh_speed_set_static</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_mincv_speed_set</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_cruise_speed_set</span> <span class="o">-</span> <span class="n">tmp_param_step</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_curve_coef</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_cruise_speed_set</span><span class="p">))[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">veh_speed_set_static</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># Determination of velocity set from dynamic state</span>
+        <span class="n">tmp_state_step_dynamic</span> <span class="o">=</span> <span class="n">stDynamic</span><span class="o">.</span><span class="n">state</span>
+        <span class="k">if</span> <span class="n">tmp_state_step_dynamic</span> <span class="o">==</span> <span class="s1">&#39;Cruise&#39;</span><span class="p">:</span>
+            <span class="n">veh_speed_set_dynamic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_cruise_speed_set</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tmp_preveh_vel</span> <span class="o">=</span> <span class="n">stDynamic</span><span class="o">.</span><span class="n">state_param</span> <span class="c1"># have to set the cruise speed set</span>
+            <span class="n">veh_speed_set_dynamic</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">tmp_preveh_vel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_cruise_speed_set</span><span class="p">))[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">veh_speed_set</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">veh_speed_set_dynamic</span><span class="p">,</span><span class="n">veh_speed_set_static</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">veh_speed_set</span><span class="p">,</span> <span class="n">veh_speed_set_static</span><span class="p">,</span> <span class="n">veh_speed_set_dynamic</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Mod_Behavior.Lon_behavior"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Behavior.Lon_behavior">[docs]</a>    <span class="k">def</span> <span class="nf">Lon_behavior</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">static_obj_in</span><span class="p">,</span> <span class="n">veh_position_s</span><span class="p">,</span> <span class="n">road_len</span><span class="p">,</span> <span class="n">veh_speed</span><span class="p">,</span> <span class="n">pre_veh_speed</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">pre_veh_reldis</span> <span class="o">=</span> <span class="mi">250</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stStatic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Static_state_recog</span><span class="p">(</span><span class="n">static_obj_in</span><span class="p">,</span> <span class="n">veh_position_s</span><span class="p">,</span> <span class="n">road_len</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stDynamic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Dynamic_state_recog</span><span class="p">(</span><span class="n">pre_veh_speed</span><span class="p">,</span> <span class="n">pre_veh_reldis</span><span class="p">)</span>
+        <span class="p">[</span><span class="n">veh_speed_set</span><span class="p">,</span> <span class="n">veh_speed_set_static</span><span class="p">,</span> <span class="n">veh_speed_set_dynamic</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Lon_vel_set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stStatic</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">stDynamic</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">veh_speed_set</span> <span class="o">=</span> <span class="n">veh_speed_set</span>
+        <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">acc_out</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">brk_out</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Lon_control</span><span class="p">(</span><span class="n">veh_speed_set</span><span class="p">,</span> <span class="n">veh_speed</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">acc_out</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">brk_out</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Mod_Behavior.Lateral_state_recog"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Behavior.Lateral_state_recog">[docs]</a>    <span class="k">def</span> <span class="nf">Lateral_state_recog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">veh_position_x</span><span class="p">,</span> <span class="n">veh_position_y</span><span class="p">,</span> <span class="n">veh_ang</span><span class="p">,</span> <span class="n">road_x</span><span class="p">,</span> <span class="n">road_y</span><span class="p">):</span>
+        <span class="n">stLateral</span> <span class="o">=</span> <span class="n">type_drvstate</span><span class="p">()</span>
+        <span class="p">[</span><span class="n">lon_offset</span><span class="p">,</span> <span class="n">lat_offset</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">min_index</span><span class="p">,</span> <span class="n">veh_an</span><span class="p">,</span> <span class="n">road_an</span><span class="p">]</span> <span class="o">=</span> <span class="n">Calc_PrDis</span><span class="p">(</span><span class="n">road_x</span><span class="p">,</span> <span class="n">road_y</span><span class="p">,</span> <span class="p">[</span><span class="n">veh_position_x</span><span class="p">,</span> <span class="n">veh_position_y</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">veh_ang</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">veh_ang</span> <span class="o">=</span> <span class="n">veh_ang</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">pi</span>
+        <span class="n">angle_diff</span> <span class="o">=</span> <span class="n">road_an</span> <span class="o">-</span> <span class="n">veh_ang</span>
+        <span class="k">if</span> <span class="n">angle_diff</span> <span class="o">&gt;=</span> <span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">:</span>
+            <span class="n">angle_diff</span> <span class="o">=</span> <span class="n">angle_diff</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">pi</span>
+        <span class="k">elif</span> <span class="n">angle_diff</span> <span class="o">&lt;=</span> <span class="o">-</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">:</span>
+            <span class="n">angle_diff</span> <span class="o">=</span> <span class="n">angle_diff</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">pi</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">angle_diff</span> <span class="o">=</span> <span class="n">angle_diff</span>
+        <span class="n">stLateral</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">angle_diff</span><span class="p">,</span> <span class="n">lat_offset</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_veh_an</span> <span class="o">=</span> <span class="n">veh_an</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">road_an</span> <span class="o">=</span> <span class="n">road_an</span>
+        <span class="k">return</span> <span class="n">stLateral</span></div>
+
+<div class="viewcode-block" id="Mod_Behavior.Lat_behavior"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Behavior.Lat_behavior">[docs]</a>    <span class="k">def</span> <span class="nf">Lat_behavior</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">veh_position_x</span><span class="p">,</span> <span class="n">veh_position_y</span><span class="p">,</span> <span class="n">veh_ang</span><span class="p">,</span> <span class="n">road_x</span><span class="p">,</span> <span class="n">road_y</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stLateral</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Lateral_state_recog</span><span class="p">(</span><span class="n">veh_position_x</span><span class="p">,</span> <span class="n">veh_position_y</span><span class="p">,</span> <span class="n">veh_ang</span><span class="p">,</span> <span class="n">road_x</span><span class="p">,</span> <span class="n">road_y</span><span class="p">)</span>
+        <span class="n">angle_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stLateral</span><span class="o">.</span><span class="n">state_param</span>
+        <span class="n">lane_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stLateral</span><span class="o">.</span><span class="n">state_reldis</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stLateral</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="s1">&#39;Left&#39;</span><span class="p">:</span>
+            <span class="n">lane_offset</span> <span class="o">=</span> <span class="o">-</span><span class="n">lane_offset</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lane_offset</span> <span class="o">=</span> <span class="n">lane_offset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lane_offset</span> <span class="o">=</span> <span class="n">lane_offset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">psi_offset</span> <span class="o">=</span> <span class="n">angle_offset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">steer_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Lat_control</span><span class="p">(</span><span class="n">lane_offset</span><span class="p">,</span> <span class="n">angle_offset</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">steer_out</span></div>
+
+<div class="viewcode-block" id="Mod_Behavior.Lat_control"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Behavior.Lat_control">[docs]</a>    <span class="k">def</span> <span class="nf">Lat_control</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">lane_offset</span><span class="p">,</span> <span class="n">angle_dif</span><span class="p">,</span> <span class="n">offset_des</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">angle_diff_des</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">steer_out_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Lat_Controller_offset</span><span class="o">.</span><span class="n">Control</span><span class="p">(</span><span class="n">offset_des</span><span class="p">,</span><span class="n">lane_offset</span><span class="p">)</span>
+        <span class="n">steer_out_yaw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Lat_Controller_yaw</span><span class="o">.</span><span class="n">Control</span><span class="p">(</span><span class="n">angle_diff_des</span><span class="p">,</span><span class="o">-</span><span class="n">angle_dif</span><span class="p">)</span>
+        <span class="n">steer_out</span> <span class="o">=</span> <span class="n">steer_out_offset</span> <span class="o">+</span> <span class="n">steer_out_yaw</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u_steer_offset</span> <span class="o">=</span> <span class="n">steer_out_offset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u_steer_yaw</span> <span class="o">=</span> <span class="n">steer_out_yaw</span>
+        <span class="k">return</span> <span class="n">steer_out</span></div></div>
+<span class="c1">#%% 3. Environment model</span>
+    <span class="c1"># Road, static objects</span>
+<div class="viewcode-block" id="Mod_Env"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Env">[docs]</a><span class="k">class</span> <span class="nc">Mod_Env</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Module description here</span>
+
+<span class="sd">    ConfigVariables:</span>
+<span class="sd">        * conf_rw_wheel</span>
+<span class="sd">        * conf_jw_body</span>
+<span class="sd">        * conf_brk_coef</span>
+<span class="sd">        * conf_acc_coef</span>
+<span class="sd">        * conf_veh_len</span>
+<span class="sd">        * ...</span>
+
+<span class="sd">    Submodules:</span>
+<span class="sd">        * Body_config:</span>
+<span class="sd">        * Dyn_config:</span>
+<span class="sd">        * Lon_driven_in:</span>
+<span class="sd">        * ...</span>
+
+<span class="sd">    Operation:</span>
+<span class="sd">        Description operation here::</span>
+
+<span class="sd">            !!!Make operation diagram here!!!</span>
+<span class="sd">            # Module_name(in//out)</span>
+<span class="sd">            Motor_control(t_mot, w_mot // des_torque)</span>
+<span class="sd">                &gt;&gt; Motor_driven(t_mot, w_mot // v_mot)</span>
+<span class="sd">                    &gt;&gt; Motor_elec_dynamics, Motor_mech_dynamics, Drive_shaft_dynamics</span>
+<span class="sd">                &gt;&gt; Motor_torque_system(v_mot // des_torque)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">road_array_x_in</span><span class="p">,</span> <span class="n">road_array_y_in</span><span class="p">,</span> <span class="n">start_road_len</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">road_x</span> <span class="o">=</span> <span class="n">road_array_x_in</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">road_y</span> <span class="o">=</span> <span class="n">road_array_y_in</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">type_objective</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">road_array_x_in</span><span class="p">))]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Road_config</span><span class="p">(</span><span class="n">start_road_len</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Mod_Env.Road_config"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Env.Road_config">[docs]</a>    <span class="k">def</span> <span class="nf">Road_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_road_len</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">road_array_x_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">road_x</span>
+        <span class="n">road_array_y_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">road_y</span>
+        <span class="n">loc_env_road_s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">road_array_x_in</span><span class="p">))</span>
+        <span class="n">loc_env_road_s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">start_road_len</span>
+        <span class="n">loc_env_road_ang</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">road_array_x_in</span><span class="p">))</span>
+        <span class="n">loc_env_road_ang</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">road_array_x_in</span><span class="p">),</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">old_pos</span> <span class="o">=</span> <span class="p">[</span><span class="n">road_array_x_in</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">road_array_y_in</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="n">new_pos</span> <span class="o">=</span> <span class="p">[</span><span class="n">road_array_x_in</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">road_array_y_in</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+            <span class="n">loc_env_road_s</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">loc_env_road_s</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">dist_calc</span><span class="o">.</span><span class="n">euclidean</span><span class="p">(</span><span class="n">old_pos</span><span class="p">,</span> <span class="n">new_pos</span><span class="p">)</span>
+            <span class="n">loc_env_road_ang</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan</span><span class="p">((</span><span class="n">road_array_y_in</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">road_array_y_in</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="n">road_array_x_in</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">road_array_x_in</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">road_ang</span> <span class="o">=</span> <span class="n">loc_env_road_ang</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">road_len</span> <span class="o">=</span> <span class="n">loc_env_road_s</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Road_curve_def</span><span class="p">(</span><span class="n">road_array_x_in</span><span class="p">,</span> <span class="n">road_array_y_in</span><span class="p">,</span> <span class="n">loc_env_road_s</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Mod_Env.Obj_add"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Env.Obj_add">[docs]</a>    <span class="k">def</span> <span class="nf">Obj_add</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_in</span><span class="p">,</span> <span class="n">object_param_in</span><span class="p">,</span> <span class="n">object_s_location</span><span class="p">):</span>
+        <span class="n">loc_env_road_s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">road_len</span>
+        <span class="n">tmp_s_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">loc_env_road_s</span> <span class="o">&gt;=</span> <span class="n">object_s_location</span><span class="p">))</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_list</span><span class="p">[</span><span class="n">tmp_s_index</span><span class="p">]</span><span class="o">.</span><span class="n">add_object</span><span class="p">(</span><span class="n">object_in</span><span class="p">,</span><span class="n">object_param_in</span><span class="p">,</span><span class="n">object_s_location</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Mod_Env.Road_curve_def"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Env.Road_curve_def">[docs]</a>    <span class="k">def</span> <span class="nf">Road_curve_def</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">road_array_x_in</span><span class="p">,</span> <span class="n">road_array_y_in</span><span class="p">,</span> <span class="n">loc_env_road_s</span><span class="p">,</span> <span class="n">conf_curve_val</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">):</span>
+        <span class="n">object_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">type_objective</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">road_array_x_in</span><span class="p">))]</span>
+        <span class="p">[</span><span class="n">R_out</span><span class="p">,</span> <span class="n">x_c_out</span><span class="p">,</span> <span class="n">y_c_out</span><span class="p">,</span> <span class="n">circle_index</span><span class="p">,</span> <span class="n">mr_o</span><span class="p">,</span> <span class="n">mt_o</span><span class="p">]</span> <span class="o">=</span> <span class="n">Calc_Radius</span><span class="p">(</span><span class="n">road_array_x_in</span><span class="p">,</span> <span class="n">road_array_y_in</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">tmp_Curve</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">R_out</span>
+        <span class="n">tmp_Curve_Filt</span> <span class="o">=</span> <span class="n">Filt_MovAvg</span><span class="p">(</span><span class="n">tmp_Curve</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">tmp_Curve_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">road_array_x_in</span><span class="p">))[</span><span class="n">tmp_Curve_Filt</span> <span class="o">&gt;=</span> <span class="n">conf_curve_val</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">road_curve</span> <span class="o">=</span> <span class="n">tmp_Curve</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tmp_Curve_index</span><span class="p">)):</span>
+            <span class="n">tmp_s_index</span> <span class="o">=</span> <span class="n">tmp_Curve_index</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">object_list</span><span class="p">[</span><span class="n">tmp_s_index</span><span class="p">]</span><span class="o">.</span><span class="n">add_object</span><span class="p">(</span><span class="s1">&#39;Curve&#39;</span><span class="p">,</span><span class="n">tmp_Curve</span><span class="p">[</span><span class="n">tmp_s_index</span><span class="p">],</span><span class="n">loc_env_road_s</span><span class="p">[</span><span class="n">tmp_s_index</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">object_list</span></div>
+
+<div class="viewcode-block" id="Mod_Env.Vehicle_init_config"><a class="viewcode-back" href="../../py_sim.sim_models.html#py_sim.sim_models.Mod_Env.Vehicle_init_config">[docs]</a>    <span class="k">def</span> <span class="nf">Vehicle_init_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">veh_mod</span><span class="p">,</span> <span class="n">road_index</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">veh_mod</span><span class="o">.</span><span class="n">pos_x_veh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">road_x</span><span class="p">[</span><span class="n">road_index</span><span class="p">]</span>
+        <span class="n">veh_mod</span><span class="o">.</span><span class="n">pos_y_veh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">road_y</span><span class="p">[</span><span class="n">road_index</span><span class="p">]</span>
+        <span class="n">veh_mod</span><span class="o">.</span><span class="n">psi_veh</span> <span class="o">=</span> <span class="n">atan</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">road_y</span><span class="p">[</span><span class="n">road_index</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">road_y</span><span class="p">[</span><span class="n">road_index</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">road_x</span><span class="p">[</span><span class="n">road_index</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">road_x</span><span class="p">[</span><span class="n">road_index</span><span class="p">]))</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">road_x</span><span class="p">[</span><span class="n">road_index</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">road_x</span><span class="p">[</span><span class="n">road_index</span><span class="p">])</span><span class="o">/</span><span class="nb">abs</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">road_x</span><span class="p">[</span><span class="n">road_index</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">road_x</span><span class="p">[</span><span class="n">road_index</span><span class="p">])))</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">pi</span></div></div>
+
+<span class="c1">#%%  ----- test ground -----</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, ACELab.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'',
+            LANGUAGE:'en',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

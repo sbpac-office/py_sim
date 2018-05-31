@@ -1,0 +1,328 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>py_sim package &mdash; py_sim  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Simulation model : Vehicle" href="py_sim.model_vehicle.html" />
+    <link rel="prev" title="Welcome to py_sim’s documentation!" href="index.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> py_sim
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">py_sim package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#py-sim-pakcage-overview">py_sim pakcage overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#author">Author</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sub-models">Sub models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#update">Update</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#notice">Notice</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#simulation-models">Simulation models</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="py_sim.model_vehicle.html">Simulation model : Vehicle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="py_sim.model_maneuver.html">Simulation model : Maneuver</a></li>
+<li class="toctree-l3"><a class="reference internal" href="py_sim.model_environment.html">Simulation model : Environment</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="py_sim.type_def.html">py_sim type definition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="py_sim.utilities.html">py_sim utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="py_sim.sim_test.html">Test pakcage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="py_sim.data_config.html">Data config package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="py_sim.data_roadxy.html">Data road package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">py_sim</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>py_sim package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/py_sim.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-py_sim">
+<span id="py-sim-package"></span><h1>py_sim package<a class="headerlink" href="#module-py_sim" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="py-sim-pakcage-overview">
+<h2>py_sim pakcage overview<a class="headerlink" href="#py-sim-pakcage-overview" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="author">
+<h3>Author<a class="headerlink" href="#author" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>kyunghan &lt;<a class="reference external" href="mailto:kyunghah&#46;min&#37;&#52;&#48;gmail&#46;com">kyunghah<span>&#46;</span>min<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;</li>
+</ul>
+</div>
+<div class="section" id="description">
+<h3>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Simulation package of electric vehicle in python environment</li>
+</ul>
+</div>
+<div class="section" id="sub-models">
+<h3>Sub models<a class="headerlink" href="#sub-models" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Vehicle model</li>
+<li>Maneuver model</li>
+<li>Environment model</li>
+</ul>
+</div>
+<div class="section" id="update">
+<h3>Update<a class="headerlink" href="#update" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>[18/05/31] - Initial release - kyunghan</li>
+</ul>
+</div>
+<div class="section" id="notice">
+<h3>Notice<a class="headerlink" href="#notice" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Make some applications at <code class="docutils literal notranslate"><span class="pre">applications</span> <span class="pre">folder</span></code></li>
+<li>Good job guys!! ~_~</li>
+</ul>
+</div>
+</div>
+<div class="section" id="simulation-models">
+<h2>Simulation models<a class="headerlink" href="#simulation-models" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="py_sim.model_vehicle.html">Simulation model : Vehicle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="py_sim.model_maneuver.html">Simulation model : Maneuver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="py_sim.model_environment.html">Simulation model : Environment</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="py_sim.type_def.html">py_sim type definition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="py_sim.utilities.html">py_sim utilities</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="py_sim.sim_test.html">Test pakcage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="py_sim.sim_test.sim1_acc_in.html">py_sim.sim_test.sim1_acc_in module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_sim.sim_test.sim2_steer_in.html">py_sim.sim_test.sim2_steer_in module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_sim.sim_test.sim3_speed_control.html">py_sim.sim_test.sim3_speed_control module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_sim.sim_test.sim4_steer_control.html">py_sim.sim_test.sim4_steer_control module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_sim.sim_test.sim5_env_driving.html">py_sim.sim_test.sim5_env_driving module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_sim.sim_test.sim6_env_cruise.html">py_sim.sim_test.sim6_env_cruise module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py_sim.sim_test.example_google.html">py_sim.sim_test.example_google module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="py_sim.data_config.html">Data config package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="py_sim.data_config.get_config.html">py_sim.data_config.get_config module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="py_sim.data_roadxy.html">Data road package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="py_sim.data_roadxy.get_roadxy.html">py_sim.data_roadxy.get_roadxy module</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="py_sim.model_vehicle.html" class="btn btn-neutral float-right" title="Simulation model : Vehicle" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="Welcome to py_sim’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, ACELab.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            LANGUAGE:'en',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

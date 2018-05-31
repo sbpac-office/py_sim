@@ -1,0 +1,7 @@
+py\_sim.sim\_test.4\_steer\_control module
+==========================================
+
+.. automodule:: py_sim.sim_test.4_steer_control
+    :members:
+    :undoc-members:
+    :show-inheritance:
