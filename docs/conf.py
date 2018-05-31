@@ -15,18 +15,21 @@
 import os
 import sys
 
-cur_dis = os.path.abspath('.')
-print('cur_dis',cur_dis)
-cur_dis_get = os.getcwd()
-print('cur_dis_get',cur_dis)
-print(dir('cur_dir'))
+cur_dir = os.path.abspath('.')
+print('cur_dir',cur_dir)
+print('cur_dir_file_list', os.listdir(cur_dir))
+
 base_dir = os.path.abspath('../..')
 print('base_dir', base_dir)
-print(dir('base_dir'))
+print('base_dir_file_list', os.listdir(base_dir))
 
 base_dir2 = os.path.abspath('..')
 print('base_dir2', base_dir2)
-print(dir('base_dir2'))
+print('base2_dir_file_list', os.listdir(base_dir2))
+
+bin_dir = os.path.abspath('..\bin')
+print('bin_dir', bin_dir)
+print('bin_dir_file_list', os.listdir(bin_dir))
 
 sys.path.append(base_dir)
 sys.path.append(base_dir2)
