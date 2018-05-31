@@ -19,11 +19,14 @@ cur_dis = os.path.abspath('.')
 print('cur_dis',cur_dis)
 cur_dis_get = os.getcwd()
 print('cur_dis_get',cur_dis)
-
+print(dir('cur_dir'))
 base_dir = os.path.abspath('../..')
 print('base_dir', base_dir)
+print(dir('base_dir'))
 
 base_dir2 = os.path.abspath('..')
+print('base_dir2', base_dir2)
+print(dir('base_dir2'))
 
 sys.path.append(base_dir)
 sys.path.append(base_dir2)
