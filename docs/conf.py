@@ -21,8 +21,7 @@ cur_dis_get = os.getcwd()
 print('cur_dis_get',cur_dis)
 
 base_dir = os.path.abspath('../..')
-base_dir.__dir__()
-
+print(base_dir.__dir__())
 print('base_dir', base_dir)
 
 sys.path.insert(0, os.path.abspath('../..'))
