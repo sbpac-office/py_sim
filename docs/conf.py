@@ -14,9 +14,8 @@
 #
 import os
 import sys
-base_dir = os.getcwd()
-sys.path.insert(0, '..\..')
-print('deb_ssinzzang:'+base_dir)
+
+sys.path.insert(0, os.path.abspath('..\..'))
 
 # -- Project information -----------------------------------------------------
 
