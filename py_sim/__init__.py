@@ -33,11 +33,12 @@ __Name__ = 'py_sim'
 __Version__ = '1.0'
 __Manager__ = 'Kyunghan'
 # data direction config
-base_dir = os.path.abspath('..\py_sim')
-data_dir = os.path.abspath('..\data_roadxy')
-conf_dir = os.path.abspath('..\data_config')
-test_dir = os.path.abspath('..\sim_test')
+base_dir = os.path.abspath('../py_sim')
+data_dir = os.path.abspath('../data_roadxy')
+conf_dir = os.path.abspath('../data_config')
+test_dir = os.path.abspath('../sim_test')
 print('Base directory: ', base_dir)
+print(os.listdir(base_dir))
 sys.path.append(base_dir);
 sys.path.append(data_dir);
 sys.path.append(conf_dir);
