@@ -42,7 +42,7 @@ if __name__== "__main__":
     from model_vehicle import Mod_Veh, Mod_Body, Mod_PowerTrain
     from model_maneuver import Mod_Behavior, Mod_Driver
     from model_environment import Mod_Env
-    from type_def import type_DataLog
+    from sub_type_def import type_DataLog
     #%% 1. Import models
     # Powertrain import and configuration
     kona_power = Mod_PowerTrain()

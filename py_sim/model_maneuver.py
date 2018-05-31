@@ -20,8 +20,8 @@ Update
 from math import pi
 import numpy as np
 # import package modules
-from utilities import Calc_PrDis
-from type_def import type_pid_controller, type_drvstate, type_objective
+from sub_utilities import Calc_PrDis
+from sub_type_def import type_pid_controller, type_drvstate, type_objective
 # import config data modules
 
 # simulation sampling time

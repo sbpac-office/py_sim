@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-py_sim type definition
-==============================================================
-
 Author
 ~~~~~~~~~~~~~
 * kyunghan <kyunghah.min@gmail.com>

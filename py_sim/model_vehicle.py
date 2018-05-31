@@ -22,8 +22,8 @@ from math import pi, sin, cos, atan
 import numpy as np
 from scipy.spatial import distance as dist_calc
 # import package modules
-from utilities import Calc_Radius, Filt_MovAvg, Calc_PrDis
-from type_def import type_pid_controller, type_drvstate, type_objective
+from sub_utilities import Calc_Radius, Filt_MovAvg, Calc_PrDis
+from sub_type_def import type_pid_controller, type_drvstate, type_objective
 # import config data modules
 
 # simulation sampling time
