@@ -28,11 +28,6 @@ Notice
 """
 import os
 import sys
-import model_vehicle
-import model_maneuver
-import model_environment
-import sub_type_def
-import sub_utilities
 #import py_sim
 __Name__ = 'py_sim'
 __Version__ = '1.0'
