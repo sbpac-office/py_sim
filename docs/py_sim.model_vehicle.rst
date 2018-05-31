@@ -1,3 +1,5 @@
+Simulation model: Vehicle
+-------------------------
 .. automodule:: py_sim.model_vehicle
     :members:
     :undoc-members:
