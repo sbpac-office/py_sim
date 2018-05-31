@@ -1,0 +1,313 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>py_sim.sub_type_def &mdash; py_sim  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> py_sim
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../py_sim.html">py_sim package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">py_sim</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../py_sim.html">py_sim</a> &raquo;</li>
+        
+      <li>py_sim.sub_type_def</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for py_sim.sub_type_def</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Author</span>
+<span class="sd">~~~~~~~~~~~~~</span>
+<span class="sd">* kyunghan &lt;kyunghah.min@gmail.com&gt;</span>
+
+<span class="sd">Description</span>
+<span class="sd">~~~~~~~~~~~~~</span>
+<span class="sd">* Class set for type definition</span>
+<span class="sd">    * type_pid_controller</span>
+<span class="sd">    * type_drvstate</span>
+<span class="sd">    * type_objective</span>
+<span class="sd">    * type_DataLog</span>
+
+<span class="sd">Update</span>
+<span class="sd">~~~~~~~~~~~~~</span>
+<span class="sd">* [18/05/31] - Initial release - kyunghan</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># Config variable</span>
+<span class="n">Ts</span> <span class="o">=</span> <span class="mf">0.01</span>
+<div class="viewcode-block" id="type_pid_controller"><a class="viewcode-back" href="../../py_sim.sub_type_def.html#py_sim.sub_type_def.type_pid_controller">[docs]</a><span class="k">class</span> <span class="nc">type_pid_controller</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">P_gain</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">I_gain</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">D_gain</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">Ts</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">I_val_old</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">Error_old</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">P_gain</span> <span class="o">=</span> <span class="n">P_gain</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">I_gain</span> <span class="o">=</span> <span class="n">I_gain</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">D_gain</span> <span class="o">=</span> <span class="n">D_gain</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">I_val_old</span> <span class="o">=</span> <span class="n">I_val_old</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Error_old</span> <span class="o">=</span> <span class="n">Error_old</span>
+        <span class="k">if</span> <span class="n">Ts</span> <span class="o">==</span> <span class="s1">&#39;None&#39;</span><span class="p">:</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()[</span><span class="s1">&#39;Ts&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span> <span class="o">=</span> <span class="n">Ts</span>
+
+<div class="viewcode-block" id="type_pid_controller.Control"><a class="viewcode-back" href="../../py_sim.sub_type_def.html#py_sim.sub_type_def.type_pid_controller.Control">[docs]</a>    <span class="k">def</span> <span class="nf">Control</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">set_value</span><span class="p">,</span><span class="n">cur_value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Error</span> <span class="o">=</span> <span class="n">set_value</span> <span class="o">-</span> <span class="n">cur_value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">P_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P_gain</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">I_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">I_gain</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">I_val_old</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">I_val_old</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">I_val</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">D_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">D_gain</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Error_old</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span>
+        <span class="n">Control_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P_val</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">I_val</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">D_val</span>
+        <span class="k">return</span> <span class="n">Control_out</span></div></div>
+
+<div class="viewcode-block" id="type_objective"><a class="viewcode-back" href="../../py_sim.sub_type_def.html#py_sim.sub_type_def.type_objective">[docs]</a><span class="k">class</span> <span class="nc">type_objective</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_class</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_param</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_loc_s</span> <span class="o">=</span> <span class="p">[]</span>
+<div class="viewcode-block" id="type_objective.add_object"><a class="viewcode-back" href="../../py_sim.sub_type_def.html#py_sim.sub_type_def.type_objective.add_object">[docs]</a>    <span class="k">def</span> <span class="nf">add_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">object_class_in</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">object_param_in</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">object_loc_in</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_class</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">object_class_in</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_param</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">object_param_in</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_loc_s</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">object_loc_in</span><span class="p">)</span></div>
+<div class="viewcode-block" id="type_objective.merg_object"><a class="viewcode-back" href="../../py_sim.sub_type_def.html#py_sim.sub_type_def.type_objective.merg_object">[docs]</a>    <span class="k">def</span> <span class="nf">merg_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">object_class_in</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">object_param_in</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">object_loc_in</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_class</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">object_class</span> <span class="o">+</span> <span class="n">object_class_in</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_param</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">object_param</span> <span class="o">+</span> <span class="n">object_param_in</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_loc_s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">object_loc_s</span> <span class="o">+</span> <span class="n">object_loc_in</span></div></div>
+
+<div class="viewcode-block" id="type_drvstate"><a class="viewcode-back" href="../../py_sim.sub_type_def.html#py_sim.sub_type_def.type_drvstate">[docs]</a><span class="k">class</span> <span class="nc">type_drvstate</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_param</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_reldis</span> <span class="o">=</span> <span class="p">[]</span>
+<div class="viewcode-block" id="type_drvstate.add_state"><a class="viewcode-back" href="../../py_sim.sub_type_def.html#py_sim.sub_type_def.type_drvstate.add_state">[docs]</a>    <span class="k">def</span> <span class="nf">add_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_in</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">state_param_in</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">state_reldis_in</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state_in</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_param</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state_param_in</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_reldis</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state_reldis_in</span><span class="p">)</span></div>
+<div class="viewcode-block" id="type_drvstate.set_state"><a class="viewcode-back" href="../../py_sim.sub_type_def.html#py_sim.sub_type_def.type_drvstate.set_state">[docs]</a>    <span class="k">def</span> <span class="nf">set_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_in</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">state_param_in</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">state_reldis_in</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">state_in</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_param</span> <span class="o">=</span> <span class="n">state_param_in</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_reldis</span> <span class="o">=</span> <span class="n">state_reldis_in</span></div></div>
+
+<div class="viewcode-block" id="type_DataLog"><a class="viewcode-back" href="../../py_sim.sub_type_def.html#py_sim.sub_type_def.type_DataLog">[docs]</a><span class="k">class</span> <span class="nc">type_DataLog</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">NameSpaceList</span> <span class="o">=</span> <span class="p">[]):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">NameSpaceList</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Should set name space : SetNameSpace(List)&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">NameSet</span> <span class="o">=</span> <span class="n">NameSpaceList</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">DataProfile</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">NameSet</span> <span class="o">=</span> <span class="n">NameSpaceList</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">DataProfile</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">NameSpaceList</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">DataProfile</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">i</span><span class="p">:[]})</span>
+
+<div class="viewcode-block" id="type_DataLog.SetNameSpace"><a class="viewcode-back" href="../../py_sim.sub_type_def.html#py_sim.sub_type_def.type_DataLog.SetNameSpace">[docs]</a>    <span class="k">def</span> <span class="nf">SetNameSpace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">NameSpaceList</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NameSet</span> <span class="o">=</span> <span class="n">NameSpaceList</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">NameSpaceList</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">DataProfile</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">i</span><span class="p">:[]})</span></div>
+
+<div class="viewcode-block" id="type_DataLog.StoreData"><a class="viewcode-back" href="../../py_sim.sub_type_def.html#py_sim.sub_type_def.type_DataLog.StoreData">[docs]</a>    <span class="k">def</span> <span class="nf">StoreData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">DataSet</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">NameSet</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">DataSet</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Data length should same to Name set length&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">NameSet</span><span class="p">)):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">DataProfile</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">NameSet</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">DataSet</span><span class="p">[</span><span class="n">i</span><span class="p">])</span></div>
+<div class="viewcode-block" id="type_DataLog.get_profile_value"><a class="viewcode-back" href="../../py_sim.sub_type_def.html#py_sim.sub_type_def.type_DataLog.get_profile_value">[docs]</a>    <span class="k">def</span> <span class="nf">get_profile_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">get_name_set</span> <span class="o">=</span> <span class="p">[]):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">get_name_set</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">get_name_set</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">NameSet</span>
+        <span class="n">return_profile_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">get_name_set</span><span class="p">:</span>
+            <span class="n">return_profile_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DataProfile</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">return_profile_list</span></div>
+<div class="viewcode-block" id="type_DataLog.get_profile_value_one"><a class="viewcode-back" href="../../py_sim.sub_type_def.html#py_sim.sub_type_def.type_DataLog.get_profile_value_one">[docs]</a>    <span class="k">def</span> <span class="nf">get_profile_value_one</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">get_name_set</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">DataProfile</span><span class="p">[</span><span class="n">get_name_set</span><span class="p">]</span></div></div>
+
+<span class="c1">#%%  ----- test ground -----</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, ACELab.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'',
+            LANGUAGE:'en',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

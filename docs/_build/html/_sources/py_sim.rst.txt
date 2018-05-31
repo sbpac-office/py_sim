@@ -22,8 +22,8 @@ Submodules
 .. toctree::
    :maxdepth: 1
 
-   py_sim.type_def
-   py_sim.utilities
+   py_sim.sub_type_def
+   py_sim.sub_utilities
 
 Subpackages
 -----------

@@ -1,6 +1,11 @@
 Test pakcage
 -------------
 
+.. automodule:: py_sim.sim_test
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 .. toctree::
    :maxdepth: 1
 
