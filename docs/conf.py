@@ -28,7 +28,7 @@ base_dir2 = os.path.abspath('..')
 sys.path.append(base_dir)
 sys.path.append(base_dir2)
 
-print('path_debug: 'sys.path)
+print('path_debug: ',sys.path)
 # -- Project information -----------------------------------------------------
 
 project = 'py_sim'
