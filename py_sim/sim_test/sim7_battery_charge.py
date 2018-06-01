@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Test code: position control test
+Test code: Battery charge
 ==============================================================
 
 Author
@@ -24,6 +24,7 @@ Test result
 Update
 ~~~~~~~~~~~~~
 * [18/05/31] - Initial release - kyunghan
+* [18/06/01] - rev - kyuhwan
 """
 if __name__ == "__main__":
     #%% 0. Import python lib modules
@@ -46,7 +47,7 @@ if __name__ == "__main__":
     from model_powertrain import Mod_PowerTrain
     from model_maneuver import Mod_Behavior, Mod_Driver
     from model_environment import Mod_Env
-    from type_def import type_DataLog
+    from sub_type_def import type_DataLog
     from data_roadxy import get_roadxy
     #%% 0. Import model
     # Powertrain import and configuration
@@ -84,7 +85,7 @@ if __name__ == "__main__":
     sim_time = 600
     sim_time_range = np.arange(0,sim_time,0.01)
     # Set logging data
-    data_log_list = ['veh_vel','vel_set','acc_in','brk_in','str_in','pos_x','pos_y','pos_s']
+    data_log_list = ['veh_vel','vel_set','acc_in','brk_in','str_in','pos_x','pos_y','pos_s','soc']
     simdata = type_DataLog(data_log_list)
     for sim_step in range(len(sim_time_range)):
         # Arrange vehicle position
@@ -99,8 +100,9 @@ if __name__ == "__main__":
         # Vehicle model sim
         [veh_vel, the_wheel] = kona_vehicle.Veh_driven(u_acc = u_acc_in, u_brake = u_brk_in, u_steer = u_steer_in)
         [pos_x, pos_y, pos_s, pos_n, psi_veh] = kona_vehicle.Veh_position_update(veh_vel, the_wheel)
+        soc = kona_power.Battery.SOC
         # Store data
-        log_data_set = [veh_vel, beh_driving.veh_speed_set, u_acc_in, u_brk_in, u_steer_in, pos_x, pos_y, pos_s]
+        log_data_set = [veh_vel, beh_driving.veh_speed_set, u_acc_in, u_brk_in, u_steer_in, pos_x, pos_y, pos_s,soc]
         simdata.StoreData(log_data_set)
 
     for name_var in data_log_list:
@@ -108,8 +110,9 @@ if __name__ == "__main__":
     #%%
     fig = plt.figure(figsize=(8,4))
     ax1 = plt.subplot(121)
-    ax2 = plt.subplot(222)
-    ax3 = plt.subplot(224)
+    ax2 = plt.subplot(322)
+    ax3 = plt.subplot(324)
+    ax4 = plt.subplot(326)
     ax1.plot(road_x,road_y,label = 'Road')
     ax1.plot(sim_pos_x, sim_pos_y,'--',label = 'Vehicle');ax1.set_xlabel('X position [m]');ax1.set_ylabel('Y position [m]')
     ax1.legend()
@@ -120,3 +123,7 @@ if __name__ == "__main__":
     ax3.plot(sim_time_range, sim_brk_in,label = 'Brk')
     ax3.plot(sim_time_range, sim_str_in,label = 'Str')
     ax3.legend()
+    ax4.plot(sim_time_range, sim_soc,label = 'SOC')
+    ax4.legend()
+    
+    

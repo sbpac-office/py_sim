@@ -38,7 +38,8 @@ if __name__== "__main__":
     sys.path.append(conf_dir);
     sys.path.append(test_dir);
     # Import package lib modules
-    from model_vehicle import Mod_Veh, Mod_Body, Mod_PowerTrain
+    from model_vehicle import Mod_Veh, Mod_Body
+    from model_powertrain import Mod_PowerTrain
     from model_maneuver import Mod_Behavior, Mod_Driver
     from model_environment import Mod_Env
     from sub_type_def import type_DataLog

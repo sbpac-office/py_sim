@@ -9,13 +9,14 @@ Author
 
 Description
 ~~~~~~~~~~~~~
-* Powertrain model
 * Body model
 * Vehicle model
 
 Update
 ~~~~~~~~~~~~~
 * [18/05/31] - Initial release - kyunghan
+* [18/06/01] - Revision 01 - Kyuhwan
+  - Seperate powertrain class in new file
 """
 # import python lib modules
 from math import pi, sin, cos, atan
@@ -34,232 +35,7 @@ you can declare other sampling time in application as vairable ``Ts``
 
 """
 
-class Mod_PowerTrain:
-    """
-    Electric vhielc powertrain model
 
-    ConfigVariables:
-        * conf_rm_mot: motor registance [ohm].
-        * conf_lm_mot: motor electric induction [Hennry]
-        * conf_kb_mot: motor back emp coeff [-]
-        * conf_kt_mot: motor torque constant [Nm/A]
-        * conf_jm_mot: motor inertia [kg*m^2/rad..?]
-        * conf_trq_gain: torque efficiency [-]
-        * conf_rd_gear: reduction gear ratio [-]
-        * conf_ks_shaft: shaft stifness [Nm/rad]
-
-    Submodules:
-        * Motor_config: set config variables
-        * DriveTrain_config: set config variables
-        * Motor_driven: Driven motor
-        * Motor_control: Control motor torque
-        * Motor_elect_dynamics: 1st order dynamics for motor electric system
-        * Motor_mech_dynamics: 1st order dynamics for motor mechanical system
-        * Drive_shaft_dynamics: 1st order dynamics for shaft rotational system
-        * Motor_torque_system: set motor voltage
-
-    Operation:
-        Motor_control module can control the motor to desired torque::
-
-            # Module_name(in//out)
-            Motor_control(t_mot, w_mot, t_load // des_torque)
-                >> Motor_driven(t_mot, w_mot, t_load // v_mot)
-                    >> Motor_elec_dynamics, Motor_mech_dynamics, Drive_shaft_dynamics
-                >> Motor_torque_system(v_mot // des_torque)
-
-    """
-    def __init__(self):
-        self.w_mot = 0
-        self.t_mot = 0
-        self.t_load = 0
-        self.Motor_config()
-        self.DriveTrain_config()
-        self.Ts_loc = globals()['Ts']
-
-    def Motor_config(self, conf_rm = 0.1, conf_lm = 0.1, conf_kb = 6.5e-4, conf_kt = 0.1, conf_jm = 1e-3, conf_trq_gain = 1):
-        """Motor parameter configuration
-
-        Parameters not specified are declared as default values
-
-        If you want set a specific parameter don't use this function,
-        just type::
-
-            >>> Mod_PowerTrain.conf_rm_mot = 0.2
-            ...
-
-        Args:
-            Motor parameter values, default values are setted
-        """
-        self.conf_rm_mot = conf_rm
-        self.conf_lm_mot = conf_lm
-        self.conf_kb_mot = conf_kb
-        self.conf_kt_mot = conf_kt
-        self.conf_jm_mot = conf_jm
-        self.conf_trq_gain = conf_trq_gain
-
-
-    def DriveTrain_config(self, conf_rd = 8, conf_ks = 0.01):
-        """Drivetrain parameter configuration
-
-        Parameters not specified are declared as default values
-
-        If you want set a specific parameter don't use this function,
-        just type::
-
-            >>> Mod_PowerTrain.conf_rd_gear = 7
-            ...
-
-        Args:
-            * Driver shaft parameter values, default values are setted
-        """
-        self.conf_rd_gear = conf_rd
-        self.conf_ks_shaft = conf_ks
-
-    def Motor_driven(self, v_in = 0, w_shaft = 0):
-        """Motor driven function
-
-        Generate motor output(torque, speed) and load torque according to input voltage and wheel speed (shaft speed = wheel speed)
-
-        Contain theree modules ``Elecic dynamics``, ``Menahicla dynamics``, ``Shaft dynamics``
-
-        Args:
-            * v_in: motor input voltage [V]
-            * w_shaft: rotational speed of drive shaft from body model [rad/s]
-
-        returns:
-            * t_mot: motor torque [Nm]
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
-        """
-        # Elec motor model: Motor torque --> Mech motor model: Motor speed --> Drive shaft model: Load torque
-        self.t_mot = self.Motor_elec_dynamics(self.t_mot, v_in, self.w_mot)
-        self.w_mot = self.Motor_mech_dynamics(self.w_mot, self.t_mot, self.t_load)
-        self.t_load = self.Drive_shaft_dynamics(self.t_load, self.w_mot, w_shaft)
-        return [self.w_mot, self.t_mot, self.t_load]
-
-    def Motor_control(self, t_mot_des = 0, w_shaft = 0):
-        """Function overview here
-
-        Functional description
-
-        Code example wirght follows::
-
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
-            ...
-
-        Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
-
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
-        """
-        v_in = self.Motor_torque_system(t_mot_des)
-        self.Motor_driven(v_in, w_shaft)
-        return [self.w_mot, self.t_mot, self.t_load]
-
-    def Motor_elec_dynamics(self, t_mot, v_in, w_mot):
-        """Function overview here
-
-        Functional description
-
-        Code example wirght follows::
-
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
-            ...
-
-        Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
-
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
-        """
-        # Motor torque calculation
-        t_mot = t_mot*(1 - self.conf_rm_mot/self.conf_lm_mot * self.Ts_loc) \
-        + self.Ts_loc*self.conf_kt_mot/self.conf_lm_mot * (v_in - self.conf_kb_mot * w_mot)
-        return t_mot
-
-    def Motor_mech_dynamics(self, w_mot, t_mot, t_load):
-        """Function overview here
-
-        Functional description
-
-        Code example wirght follows::
-
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
-            ...
-
-        Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
-
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
-        """
-        # Motor speed calculation
-        w_mot =  w_mot + self.Ts_loc*(t_mot - t_load/self.conf_rd_gear)/self.conf_jm_mot
-        return w_mot
-
-    def Drive_shaft_dynamics(self, t_load, w_mot, w_shaft):
-        """Function overview here
-
-        Functional description
-
-        Code example wirght follows::
-
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
-            ...
-
-        Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
-
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
-        """
-        t_load = t_load + self.Ts_loc*self.conf_ks_shaft*(w_mot/self.conf_rd_gear - w_shaft)
-        return t_load
-
-    def Motor_torque_system(self, t_mot_des):
-        """Function overview here
-
-        Functional description
-
-        Code example wirght follows::
-
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
-            ...
-
-        Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
-
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
-        """
-        v_in = self.conf_trq_gain * t_mot_des
-        return v_in
 class Mod_Body:
     """
     Module description here
@@ -538,7 +314,7 @@ class Mod_Veh:
         self.psi_veh = psi_veh
 
     def Veh_driven(self, u_acc = 0, u_brake = 0, u_steer = 0):
-        t_load = self.ModPower.t_load
+        t_load = self.ModPower.Motor.t_load
         w_shaft = self.ModBody.w_wheel
         veh_vel = self.ModBody.vel_veh
         # Lateral motion
@@ -546,7 +322,7 @@ class Mod_Veh:
         # Longitudinal motion
         # Body_Lon_in --> Powertrain_Motor --> Body_Lon_out
         [t_mot_des, t_brake, t_drag] = self.ModBody.Lon_driven_in(u_acc, u_brake, veh_vel)
-        [w_mot, t_mot, t_load] = self.ModPower.Motor_control(t_mot_des, w_shaft)
+        [w_mot, t_mot, t_load] = self.ModPower.Motor.Motor_control(t_mot_des, w_shaft)
         [w_wheel, vel_veh] = self.ModBody.Lon_driven_out(t_load, t_brake, t_drag)
         return vel_veh, the_wheel
 

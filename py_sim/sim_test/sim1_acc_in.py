@@ -31,18 +31,21 @@ if __name__== "__main__":
     data_dir = os.path.abspath('..\data_roadxy')
     conf_dir = os.path.abspath('..\data_config')
     test_dir = os.path.abspath('..\sim_test')
+
     print('Base directory: ', base_dir)
     sys.path.append(base_dir);
     sys.path.append(data_dir);
     sys.path.append(conf_dir);
     sys.path.append(test_dir);
-    from model_vehicle import Mod_Veh, Mod_Body, Mod_PowerTrain
+    from model_vehicle import Mod_Veh, Mod_Body
+    from model_powertrain import Mod_PowerTrain
     from model_maneuver import Mod_Behavior, Mod_Driver
     from model_environment import Mod_Env
     from sub_type_def import type_DataLog
     #%% 1. Import models
     # Powertrain import and configuration
     kona_power = Mod_PowerTrain()
+    #%%
     # ~~~~~
     # Bodymodel import and configuration
     kona_body = Mod_Body()
