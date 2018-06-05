@@ -11,10 +11,12 @@ Description
     * type_drvstate
     * type_objective
     * type_DataLog
+    * type_Hyst
 
 Update
 ~~~~~~~~~~~~~
 * [18/05/31] - Initial release - kyunghan
+* [18/06/05] - Hysteresis filter add - kyunghan
 """
 # Config variable
 Ts = 0.01
@@ -100,6 +102,58 @@ class type_DataLog:
     def get_profile_value_one(self, get_name_set):
         return self.DataProfile[get_name_set]
 
+class type_hyst:
+    def __init__(self, CriUp, CriLow, TrnsTime = 0):
+        self.time_step = 0
+        self.state_old = 0
+        self.Trns_time_step = TrnsTime / globals()['Ts']
+        self.CriUp = CriUp
+        self.CriLow = CriLow
+    
+    def filt_dyn(self,Data, CriUp, CriLow):
+        if Data >= CriUp:
+            if self.time_step >= self.Trns_time_step:
+                State = 1                
+            else:
+                State = self.state_old
+        elif Data <= CriLow:
+            if self.time_step >= self.Trns_time_step:
+                State = 0                
+            else:
+                State = self.state_old
+        else:
+            State = self.state_old            
+        
+        if self.state_old != State:
+            self.time_step = 0
+        else:
+            self.time_step = self.time_step + 1    
+            
+        self.state_old = State       
+        return State
+        
+    def filt(self,Data):
+        return self.filt_dyn(Data,self.CriUp,self.CriLow)    
 #%%  ----- test ground -----
 if __name__ == "__main__":
+    # test hysteresis filter
+    import numpy as np
+    import matplotlib.pyplot as plt
+    Ts = 0.1
+    x_data = np.arange(1,10,0.1)
+    y_data = np.sin(x_data) 
+    state_li = []
+    time_stepli = []
+    filt_hyst = type_hyst(0.5, -0.5, 1.5)
+    for i in range(len(x_data)):
+        state = filt_hyst.filt(y_data[i])*2-1
+        state_li.append(state)
+        time_stepli.append(filt_hyst.time_step)
+    
+    plt.figure()
+    ax1 = plt.subplot(2,1,1)    
+    ax2 = plt.subplot(2,1,2)    
+    ax1.plot(x_data,y_data)
+    ax1.plot(x_data,state_li)
+    ax2.plot(x_data,time_stepli)
     pass

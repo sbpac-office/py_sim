@@ -89,7 +89,7 @@ if __name__== "__main__":
     else:
         print('입력을 똑바로 하세요 ~_~')
 
-    u_speed_val = np.concatenate((0 * np.ones(int(len(sim_time_range)*0.1)), 30 * np.ones(int(len(sim_time_range)*0.9))))
+    u_speed_val = np.concatenate(( 0 * np.ones(int(len(sim_time_range)*0.1)), 30 * np.ones(int(len(sim_time_range)*0.5)), 0 * np.ones(int(len(sim_time_range)*0.4)) ))
 
     #%% 3. Simulation
     # Set logging data

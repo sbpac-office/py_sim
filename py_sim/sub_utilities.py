@@ -207,4 +207,6 @@ def Calc_PrDis(Data_Array_x, Data_Array_y, Current_point):
     return tmp_s, tmp_n, tmp_dir, min_index, veh_an, road_an
 #%%  ----- test ground -----
 if __name__ == "__main__":
+    import matplotlib.pyplot as plt
+
     pass

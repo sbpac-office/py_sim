@@ -15,13 +15,14 @@ Description
 Update
 ~~~~~~~~~~~~~
 * [18/05/31] - Initial release - kyunghan
+* [18/06/05] - Modification of lon control - kyunghan
 """
 # import python lib modules
 from math import pi
 import numpy as np
 # import package modules
 from sub_utilities import Calc_PrDis
-from sub_type_def import type_pid_controller, type_drvstate, type_objective
+from sub_type_def import type_pid_controller, type_drvstate, type_objective, type_hyst
 # import config data modules
 
 # simulation sampling time
@@ -65,14 +66,14 @@ class Mod_Driver:
 
     def set_char(self, DriverChar = 'Normal'):
         if DriverChar == 'Normal':
-            self.set_driver_param(0.5, 0.1, 0,  0.001, 0.0001, 0,   0.1, 0.1, 0,    1.5, 4)
+            self.set_driver_param(1, 0.05, 0,  0.001, 0.0001, 0,   0.1, 0.1, 0,    1.5, 4)
         elif DriverChar == 'Aggressive':
-            self.set_driver_param(0.8, 0.15, 0,  0.001, 0.0001, 0,   0.1, 0.1, 0,    1.5, 4)
+            self.set_driver_param(1.2, 0.08, 0,  0.001, 0.0001, 0,   0.1, 0.1, 0,    1.5, 4)
         elif DriverChar == 'Defensive':
-            self.set_driver_param(0.3, 0.05, 0,  0.001, 0.0001, 0,   0.1, 0.1, 0,    1.5, 4)
+            self.set_driver_param(0.8, 0.03, 0,  0.001, 0.0001, 0,   0.1, 0.1, 0,    1.5, 4)
         else:
             print('Set the driver only = [''Normal'', ''Aggressive'', ''Defensive'']')
-            self.set_driver_param(0.5, 0.1, 0,  0.001, 0.0001, 0,   0.1, 0.1, 0,    1.5, 4)
+            self.set_driver_param(1, 0.05, 0,  0.001, 0.0001, 0,   0.1, 0.1, 0,    1.5, 4)
     def set_driver_param(self, P_gain_lon = 0.5, I_gain_lon = 0.1, D_gain_lon = 0, P_gain_lat = 1, I_gain_lat = 1, D_gain_lat = 0, P_gain_yaw = 1, I_gain_yaw = 1, D_gain_yaw = 0, shift_time = 1.5, max_acc = 4):
         self.P_gain_lon = P_gain_lon; self.I_gain_lon = I_gain_lon; self.D_gain_lon = D_gain_lon
         self.P_gain_lat = P_gain_lat; self.I_gain_lat = I_gain_lat; self.D_gain_lat = D_gain_lat
@@ -116,6 +117,7 @@ class Mod_Behavior:
         self.Maneuver_config()
         self.Drver_set(Driver)
         self.Ts_Loc = globals()['Ts']
+        self.hysfLonCtl = type_hyst(1, -1)
 
     def Lon_control(self,veh_vel_set, veh_vel):
         """Function overview here
@@ -138,33 +140,23 @@ class Mod_Behavior:
             * w_mot: motor rotational speed [rad/s]
             * t_load: load torque from body model [Nm]
         """
-        # Value initialization
-        if not 'timer_count' in locals():
-            timer_count = 0
-            shift_flag_ac = 'on'
-            shift_flag_br = 'on'
-
-        trq_set = self.Lon_Controller.Control(veh_vel_set,veh_vel)
-        if (trq_set >= 5) & (shift_flag_ac == 'on'):
+        # State definition - Hysteresis filter with shift time
+        vel_error = veh_vel_set - veh_vel
+        stLonControl = self.hysfLonCtl.filt(vel_error)        
+        # Reset control values when transition 
+        if stLonControl == 1:
             stControl = 'acc'
-            shift_flag_ac = 'on'
-            shift_flag_br = 'off'
-            timer_count = 0
-        elif (trq_set <= 0) & (shift_flag_br == 'on'):
-            stControl = 'brk'
-            shift_flag_ac = 'off'
-            shift_flag_br = 'on'
-            timer_count = 0
+            if self.stLonControl != 'acc':
+                self.Lon_Controller.I_val_old = 0                
         else:
-            stControl = 'idle'
-            if (shift_flag_ac == 'on') & (timer_count >= self.Driver.shift_time):
-                timer_count = 0
-                shift_flag_br = 'on'
-            elif (shift_flag_br == 'on') & (timer_count >= self.Driver.shift_time):
-                timer_count = 0
-                shift_flag_ac = 'on'
-            else:
-                timer_count = timer_count + 1
+            stControl = 'brk'
+            if self.stLonControl != 'brk':
+                self.Lon_Controller.I_val_old = 0                        
+        # Vehicle speed control    
+        trq_set = self.Lon_Controller.Control(veh_vel_set,veh_vel)
+
+        # Determine state
+
         # Set value
         if stControl == 'acc':
             acc_out = trq_set/100
@@ -172,13 +164,15 @@ class Mod_Behavior:
         elif stControl == 'brk':
             acc_out = 0
             brk_out = -trq_set/100
-        elif stControl == 'idle':
+        elif stControl == 'idle':            
             acc_out = 0
             brk_out = 0
         else:
             acc_out = 0
             brk_out = 0
+
         self.trq_set_lon = trq_set
+        self.stLonControl = stControl
         self.u_acc = acc_out
         self.u_brk = brk_out
         return [acc_out, brk_out]
@@ -209,6 +203,7 @@ class Mod_Behavior:
         self.Lon_Controller = type_pid_controller(DriverSet.P_gain_lon, DriverSet.I_gain_lon, DriverSet.D_gain_lon)
         self.Lat_Controller_offset = type_pid_controller(DriverSet.P_gain_lat, DriverSet.I_gain_lat, DriverSet.D_gain_lat)
         self.Lat_Controller_yaw = type_pid_controller(DriverSet.P_gain_yaw, DriverSet.I_gain_yaw, DriverSet.D_gain_yaw)
+        self.stLonControl = 'idle'
 
     def Maneuver_config(self, cruise_speed_set = 15, mincv_speed_set = 5, curve_coef = 1500, transition_dis = 20, forecast_dis = 100, cf_dis = 120, lat_off = 0.5):
         """Function overview here

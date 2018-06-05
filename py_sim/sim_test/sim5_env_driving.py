@@ -46,7 +46,7 @@ if __name__ == "__main__":
     from model_powertrain import Mod_PowerTrain
     from model_maneuver import Mod_Behavior, Mod_Driver
     from model_environment import Mod_Env
-    from type_def import type_DataLog
+    from sub_type_def import type_DataLog
     from data_roadxy import get_roadxy
     #%% 0. Import model
     # Powertrain import and configuration
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     kona_vehicle = Mod_Veh(kona_power, kona_body)
     # ~~~~
     # Driver model import
-    drv_kyunghan = Mod_Driver()
+    drv_kyunghan = Mod_Driver()    
     # ~~~~
     # Behavior set
     beh_driving = Mod_Behavior(drv_kyunghan)
@@ -81,11 +81,13 @@ if __name__ == "__main__":
     road_env_road_len = env_st.road_len
     #%% 2. Simulation config
     Ts = 0.01
-    sim_time = 600
+    sim_time = 200
     sim_time_range = np.arange(0,sim_time,0.01)
     # Set logging data
     data_log_list = ['veh_vel','vel_set','acc_in','brk_in','str_in','pos_x','pos_y','pos_s']
+    data_control_list = ['beh_trqset','mot_trqset','mot_trq','brk_lonctl','brk_lonbeh','trqctl_error','ctl_state','Pctl','Ictl']
     simdata = type_DataLog(data_log_list)
+    simdata_ctl = type_DataLog(data_control_list)
     for sim_step in range(len(sim_time_range)):
         # Arrange vehicle position
         pos_x = kona_vehicle.pos_x_veh
@@ -101,11 +103,16 @@ if __name__ == "__main__":
         [pos_x, pos_y, pos_s, pos_n, psi_veh] = kona_vehicle.Veh_position_update(veh_vel, the_wheel)
         # Store data
         log_data_set = [veh_vel, beh_driving.veh_speed_set, u_acc_in, u_brk_in, u_steer_in, pos_x, pos_y, pos_s]
+        log_data_ctl_set = [beh_driving.trq_set_lon, kona_body.t_mot_des, kona_power.Motor.t_mot, beh_driving.u_brk, beh_driving.brk_out, beh_driving.Lon_Controller.Error, beh_driving.stLonControl, beh_driving.Lon_Controller.P_val, beh_driving.Lon_Controller.I_val]
         simdata.StoreData(log_data_set)
-
+        simdata_ctl.StoreData(log_data_ctl_set)
+    #%% Result plot    
     for name_var in data_log_list:
-        globals()['sim_'+name_var] = simdata.get_profile_value_one(name_var)
-    #%%
+        globals()['sim_'+name_var] = simdata.get_profile_value_one(name_var)        
+        
+    for name_var in data_control_list:
+        globals()['sim_'+name_var] = simdata_ctl.get_profile_value_one(name_var)
+        
     fig = plt.figure(figsize=(8,4))
     ax1 = plt.subplot(121)
     ax2 = plt.subplot(222)
@@ -120,3 +127,20 @@ if __name__ == "__main__":
     ax3.plot(sim_time_range, sim_brk_in,label = 'Brk')
     ax3.plot(sim_time_range, sim_str_in,label = 'Str')
     ax3.legend()
+    
+    fig = plt.figure(figsize=(6,5))
+    ax1 = plt.subplot(311)
+    ax2 = plt.subplot(312)
+    ax3 = plt.subplot(313)
+    ax1.plot(sim_time_range, sim_beh_trqset)
+    ax1.plot(sim_time_range, sim_mot_trqset,label = 'mot_trqset')
+    ax1.plot(sim_time_range, sim_mot_trq,label = 'mot_trq')   
+    ax1.legend()
+    ax2.plot(sim_time_range, sim_ctl_state,label = 'ctl_state')
+    ax2.legend()
+    ax3.plot(sim_time_range, sim_trqctl_error,label = 'trq_error')
+    ax3.plot(sim_time_range, sim_Pctl,label = 'P_val')
+    ax3.plot(sim_time_range, sim_Ictl,label = 'I_val')
+    ax3.legend()
+    
+    
