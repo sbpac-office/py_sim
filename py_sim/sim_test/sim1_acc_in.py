@@ -60,7 +60,7 @@ if __name__== "__main__":
     sim_time_range = np.arange(0,sim_time,0.01)
 
     # ----------------------------- select input set ---------------------------
-    Input_index = 2
+    Input_index = 0
     if Input_index == 0:
     # Go straight : Input_index = 0
         u_acc_val = np.concatenate((0 * np.ones(int(len(sim_time_range)*0.1)), 0.3 * np.ones(int(len(sim_time_range)*0.9))))

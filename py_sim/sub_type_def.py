@@ -21,7 +21,7 @@ Update
 # Config variable
 Ts = 0.01
 class type_pid_controller:
-    def __init__(self, P_gain = 1, I_gain = 1, D_gain = 'None', Ts = 'None', I_val_old = 0, Error_old = 0):
+    def __init__(self, P_gain = 1, I_gain = 1, D_gain = 0, Ts = 'None', I_val_old = 0, Error_old = 0):
         self.P_gain = P_gain
         self.I_gain = I_gain
         self.D_gain = D_gain
@@ -109,31 +109,31 @@ class type_hyst:
         self.Trns_time_step = TrnsTime / globals()['Ts']
         self.CriUp = CriUp
         self.CriLow = CriLow
-    
+
     def filt_dyn(self,Data, CriUp, CriLow):
         if Data >= CriUp:
             if self.time_step >= self.Trns_time_step:
-                State = 1                
+                State = 1
             else:
                 State = self.state_old
         elif Data <= CriLow:
             if self.time_step >= self.Trns_time_step:
-                State = 0                
+                State = 0
             else:
                 State = self.state_old
         else:
-            State = self.state_old            
-        
+            State = self.state_old
+
         if self.state_old != State:
             self.time_step = 0
         else:
-            self.time_step = self.time_step + 1    
-            
-        self.state_old = State       
+            self.time_step = self.time_step + 1
+
+        self.state_old = State
         return State
-        
+
     def filt(self,Data):
-        return self.filt_dyn(Data,self.CriUp,self.CriLow)    
+        return self.filt_dyn(Data,self.CriUp,self.CriLow)
 #%%  ----- test ground -----
 if __name__ == "__main__":
     # test hysteresis filter
@@ -141,7 +141,7 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     Ts = 0.1
     x_data = np.arange(1,10,0.1)
-    y_data = np.sin(x_data) 
+    y_data = np.sin(x_data)
     state_li = []
     time_stepli = []
     filt_hyst = type_hyst(0.5, -0.5, 1.5)
@@ -149,10 +149,10 @@ if __name__ == "__main__":
         state = filt_hyst.filt(y_data[i])*2-1
         state_li.append(state)
         time_stepli.append(filt_hyst.time_step)
-    
+
     plt.figure()
-    ax1 = plt.subplot(2,1,1)    
-    ax2 = plt.subplot(2,1,2)    
+    ax1 = plt.subplot(2,1,1)
+    ax2 = plt.subplot(2,1,2)
     ax1.plot(x_data,y_data)
     ax1.plot(x_data,state_li)
     ax2.plot(x_data,time_stepli)

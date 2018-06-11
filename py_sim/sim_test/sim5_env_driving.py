@@ -103,7 +103,7 @@ if __name__ == "__main__":
         [pos_x, pos_y, pos_s, pos_n, psi_veh] = kona_vehicle.Veh_position_update(veh_vel, the_wheel)
         # Store data
         log_data_set = [veh_vel, beh_driving.veh_speed_set, u_acc_in, u_brk_in, u_steer_in, pos_x, pos_y, pos_s]
-        log_data_ctl_set = [beh_driving.trq_set_lon, kona_body.t_mot_des, kona_power.Motor.t_mot, beh_driving.u_brk, beh_driving.brk_out, beh_driving.Lon_Controller.Error, beh_driving.stLonControl, beh_driving.Lon_Controller.P_val, beh_driving.Lon_Controller.I_val]
+        log_data_ctl_set = [beh_driving.trq_set_lon, kona_body.t_mot_des, kona_power.ModMotor.t_mot, beh_driving.u_brk, beh_driving.brk_out, beh_driving.Lon_Controller.Error, beh_driving.stLonControl, beh_driving.Lon_Controller.P_val, beh_driving.Lon_Controller.I_val]
         simdata.StoreData(log_data_set)
         simdata_ctl.StoreData(log_data_ctl_set)
     #%% Result plot    

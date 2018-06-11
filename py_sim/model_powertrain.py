@@ -1,9 +1,7 @@
 
 import numpy as np
-
+from sub_type_def import type_pid_controller
 # import package modules
-
-from config import Ts
 """
 Simulation model : Vehicle
 ==============================================================
@@ -17,12 +15,10 @@ Description
 * Powertrain class
   - Motor class
   - Drivetrain class
-  - Battery class  
+  - Battery class
 
-Powertrain <- Motor,Drivetrain,Battery (Composition relationship)
+Powertrain <- Motor,Battery (Composition relationship)
 
-
-Motor <-> Drivetrain (Aggregation relationship)
 Motor <-> Battery (Aggregation relationship)
 
 
@@ -32,27 +28,32 @@ Update
 * [18/05/31] - Initial release - kyunghan
 * [18/06/01] - Add battery class - Seungeon
 * [18/06/01] - Modulization - kyuhwan
-- Powertrain class -> Divide into motor, drivetrain, battery classes
-- Powertrain class has composition relationship with motor, drivetrain, battery
+- Powertrain class -> Divide into motor, battery classes
+- Powertrain class has composition relationship with motor, battery
 
 -
 """
+# simulation sampling time
+Ts = 0.01
+"""global vairable: simulation sampling timeself.
 
+you can declare other sampling time in application as vairable ``Ts``
+
+"""
 #%% Motor class
 
-class Motor:    
-    def __init__(self, M_Drivetrain,M_Battery):
+class Motor:
+    def __init__(self, M_Battery):
         self.w_mot = 0
         self.t_mot = 0
-        self.t_load = 0
         self.p_mot = 0
-        self.Motor_config()        
-        self.Ts_loc = Ts    
-        self.Drivetrain = M_Drivetrain
+        self.t_load = 0
+        self.Motor_config()
+        self.Ts_loc = Ts
         self.Battery = M_Battery
-#        self.Drivetrain()
-        
-    def Motor_config(self, conf_rm = 0.1, conf_lm = 0.1, conf_kb = 6.5e-4, conf_kt = 0.1, conf_jm = 1e-3, conf_trq_gain = 1):
+        self.MotController = type_pid_controller(0.5,5,0)
+
+    def Motor_config(self, conf_rm = 0.1, conf_lm = 0.1, conf_kb = 6.5e-4, conf_kt = 0.1, conf_jm = 2e-3, conf_trq_gain = 1, conf_kf_mot = 3e-4):
         """Motor parameter configuration
 
         Parameters not specified are declared as default values
@@ -72,8 +73,9 @@ class Motor:
         self.conf_kt_mot = conf_kt
         self.conf_jm_mot = conf_jm
         self.conf_trq_gain = conf_trq_gain
-        
-    def Motor_driven(self, v_in = 0, w_shaft = 0):
+        self.conf_kf_mot = conf_kf_mot
+
+    def Motor_driven(self, v_in = 0, t_load = 0):
         # Elec motor model: Motor torque --> Mech motor model: Motor speed --> Drive shaft model: Load torque
         """Motor driven function
 
@@ -90,15 +92,13 @@ class Motor:
             * w_mot: motor rotational speed [rad/s]
             * t_load: load torque from body model [Nm]
         """
-
         self.t_mot = self.Motor_elec_dynamics(self.t_mot, v_in, self.w_mot)
-        self.w_mot = self.Motor_mech_dynamics(self.w_mot, self.t_mot, self.t_load)
-        self.t_load = self.Drivetrain.Drive_shaft_dynamics(self.t_load, self.w_mot, w_shaft)
+        self.w_mot = self.Motor_mech_dynamics(self.w_mot, self.t_mot, t_load)
         self.p_mot = self.Motor_Power_system(self.t_mot,self.w_mot)
         self.Battery.Calc_Current(self.p_mot)
-        return [self.w_mot, self.t_mot, self.t_load]
-    
-    def Motor_control(self, t_mot_des = 0, w_shaft = 0):        
+        return self.w_mot, self.t_mot
+
+    def Motor_control(self, t_mot_set = 0, t_load = 0):
         """Function overview here
 
         Functional description
@@ -119,11 +119,12 @@ class Motor:
             * w_mot: motor rotational speed [rad/s]
             * t_load: load torque from body model [Nm]
         """
+        self.t_load = t_load
+        v_in = self.Motor_torque_system(t_mot_set, self.t_mot)
+        self.v_mot = v_in
+        self.Motor_driven(v_in, t_load)
+        return [self.w_mot, self.t_mot]
 
-        v_in = self.Motor_torque_system(t_mot_des)
-        self.Motor_driven(v_in, w_shaft)
-        return [self.w_mot, self.t_mot, self.t_load]
-    
     def Motor_elec_dynamics(self, t_mot, v_in, w_mot):
         """Function overview here
 
@@ -149,8 +150,8 @@ class Motor:
         # Motor torque calculation
         t_mot = t_mot*(1 - self.conf_rm_mot/self.conf_lm_mot * self.Ts_loc) \
         + self.Ts_loc*self.conf_kt_mot/self.conf_lm_mot * (v_in - self.conf_kb_mot * w_mot)
-        return t_mot         
-        
+        return t_mot
+
     def Motor_mech_dynamics(self, w_mot, t_mot, t_load):
         """Function overview here
 
@@ -174,75 +175,18 @@ class Motor:
         """
 
         # Motor speed calculation
-        w_mot =  w_mot + self.Ts_loc*(t_mot - t_load/self.Drivetrain.conf_rd_gear)/self.conf_jm_mot
+        w_mot =  w_mot + self.Ts_loc*(t_mot - t_load - self.conf_kf_mot*w_mot)/self.conf_jm_mot
         return w_mot
-        
-    def Motor_torque_system(self, t_mot_des):
-        v_in = self.conf_trq_gain * t_mot_des
+
+    def Motor_torque_system(self, t_mot_des, t_mot):
+        v_in = self.MotController.Control(t_mot_des, t_mot)
         return v_in
-    
-    
-    def Motor_Power_system(self, t_mot, w_mot): # Seungon
+
+    def Motor_Power_system(self, t_mot, w_mot):
         self.p_mot = t_mot * w_mot
         return self.p_mot
 
-#%% Drivetrain class
-        
-class Drivetrain:  
-    def __init__(self):
-        global Ts
-
-        self.Ts_loc = Ts
-#        self.conf_rd_gear = 0
-#        self.conf_ks_shaft = 0    
-        self.DriveTrain_config()  
-    
-    def DriveTrain_config(self, conf_rd = 8, conf_ks = 0.01):
-        """Drivetrain parameter configuration
-
-        Parameters not specified are declared as default values
-
-        If you want set a specific parameter don't use this function,
-        just type::
-
-            >>> Mod_PowerTrain.conf_rd_gear = 7
-            ...
-
-        Args:
-            * Driver shaft parameter values, default values are setted
-        """
-        self.conf_rd_gear = conf_rd
-        self.conf_ks_shaft = conf_ks
-        
-    def Drive_shaft_dynamics(self, t_load, w_mot, w_shaft):
-        """Function overview here
-
-        Functional description
-
-        Code example wirght follows::
-
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
-            ...
-
-        Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
-
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
-        """
-        t_load = t_load + self.Ts_loc*self.conf_ks_shaft*(w_mot/self.conf_rd_gear - w_shaft)
-        return t_load        
-
-
-
-
 #%% Battery class
-
 class Battery:
     def __init__(self):
         # Battery Internal state
@@ -315,24 +259,16 @@ class Battery:
     def Calc_SOC(self, ):
         self.Internal_Energy = self.Internal_Energy - self.Voc * self.Current
         self.SOC = self.Internal_Energy / self.conf_Etot * 100
-        self.V_terminal = self.Voc - self.Current * self.R_tot # V_terminal = V_open circuit - V_internal_decrease
+        self.V_terminal = self.Voc - self.Current * self.R_tot
         return self.SOC
 
     def Print_States(self,):
         self.T_RC1 = self.R1 * self.C1
         self.T_RC2 = self.R2 * self.C2
         return [self.V_terminal, self.Internal_Energy, self.R_tot, self.Voc]
+
 #%% Powertrain class
-
-
 class Mod_PowerTrain():
     def __init__(self):
-        
-        self.Drivetrain = Drivetrain()
-        self.Battery = Battery()
-        self.Motor = Motor(self.Drivetrain,self.Battery)
-#PT = Mod_PowerTrain()
-#
-#C=PT.Drivetrain.conf_ks_shaft   
-#PT.Motor.Drivetrain.conf_rd_gear =1000
-#PT.Drivetrain.conf_rd_gear
+        self.ModBattery = Battery()
+        self.ModMotor = Motor(self.ModBattery)

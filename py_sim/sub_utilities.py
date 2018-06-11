@@ -205,6 +205,32 @@ def Calc_PrDis(Data_Array_x, Data_Array_y, Current_point):
             tmp_dir = 'Left'
     # Return value
     return tmp_s, tmp_n, tmp_dir, min_index, veh_an, road_an
+
+def Get_SqrVal(Value_Arry,Time_Arry,Time_Len):
+    """
+    Square value array construct
+    Description: Square value array construct about value array according to time set
+    based on radial coordination
+    Inputs
+    -----------------------------------------------------------
+    Value_Arry - Amplitude array
+    Time_Arry - Normalized time values for duty
+    Time_Len - Time length
+    Outputs
+    ----------------------------------------------------------
+    Output_Array - Constructed output array
+    """
+    Value_Array = np.array(Value_Arry)
+    Time_Array = np.array(Time_Arry)
+    Time_Len = int(Time_Len)
+    Output_Array = np.zeros(Time_Len)
+    time_set = np.append(0, Time_Array*Time_Len-1)
+    time_set = np.int64(np.append(time_set, Time_Len-1))
+    value_set = np.append(0,Value_Array)    
+    data_len = len(value_set)
+    for i in range(data_len-1):
+        Output_Array[time_set[i]:time_set[i+1]] = value_set[i]
+    return Output_Array
 #%%  ----- test ground -----
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
