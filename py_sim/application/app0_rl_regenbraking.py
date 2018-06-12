@@ -64,6 +64,44 @@ class IDM_brake:
         self.acc_set_old = acc_set    
         self.t_step = self.t_step + 1
         return acc_set, stIdm
+#%%    
+class RegQ:
+    def __init__(self,):
+        pass
+    def control(self):
+        pass
+    def policy_update(self):
+        # Calculation MC or TD target
+        reward_error
+        # Calculation model error
+        state_error
+        update_value_policy = 
+        self.policy_table()
+        pass
+    
+    def policy_iteration(self):
+        pass
+    
+    def policy_table(self):
+        pass
+    
+    def env_policy(self,state):
+        # e-greedy policy
+        action = self.policy_table(state)
+        return action
+
+class env:
+    def __init__(self):
+        pass
+    
+        
+    def env_mkv_prcess(self):
+        state = veh_state
+        action = self.control(state,self.pol)
+        reward = self.env_reward(state,action)
+    
+    def env_reward(self):
+        pass
 #%% 1. Import model
 # Powertrain import and configuration
 kona_power = Mod_PowerTrain()
@@ -114,6 +152,7 @@ sim_time_range = np.arange(0,sim_time,0.01)
 data_log_list = ['veh_vel','vel_set','acc_in','brk_in','pos_x','pos_y','pos_s','soc',
                  'trq_mot_set','trq_mot','trq_mot_reg','trq_brk','drv_state',
                  'acc_ref','acc_set','rel_dis','acc','brk_state']
+
 sim_data = type_DataLog(data_log_list)
 
 veh_vel_old = 0
@@ -150,7 +189,23 @@ for sim_step in range(len(sim_time_range)):
     
     acc = (veh_vel - veh_vel_old)/0.01
     veh_vel_old = veh_vel
+    # Reward and state calculation     
+    reward, state  = env.get_state(veh_state, action) ''' Include driver model '''
+                   = env.get_reward
+    # Model based reward prediction - markov process              
     
+    '''
+    * Model: Markov decision process
+    * Action: Torque control
+    * Reward: Regeneration efficiency, Driver heterogenity - calculated from driver mode
+    '''
+    mod_state, mod_reward = mod.model_based_idm(veh_state)
+    # Action selection using predicted reward and state
+    action = mod.policy(mod_state, mode_reward)
+    
+# Learning - Monte Carlo method                   
+mod.mc_policy_evaluation(mod_state,mod_reward)
+mod.policy_improvement(mod_state,mod_reward)
     # Data store
     data_set = [veh_vel, veh_vel_set, u_acc_in, u_brk_in, pos_x, pos_y, pos_s,
                 kona_power.ModMotor.Battery.SOC, kona_body.t_mot_set, kona_power.ModMotor.t_mot, 
