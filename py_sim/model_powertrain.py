@@ -16,22 +16,19 @@ Description
   - Motor class
   - Drivetrain class
   - Battery class
-
-Powertrain <- Motor,Battery (Composition relationship)
-
-Motor <-> Battery (Aggregation relationship)
-
-
+* Powertrain <- Motor,Battery (Composition relationship)
+* Motor <-> Battery (Aggregation relationship)
 
 Update
 ~~~~~~~~~~~~~
 * [18/05/31] - Initial release - kyunghan
-* [18/06/01] - Add battery class - Seungeon
+* [18/06/01] - Add battery class - seungeon
 * [18/06/01] - Modulization - kyuhwan
-- Powertrain class -> Divide into motor, battery classes
-- Powertrain class has composition relationship with motor, battery
-
--
+  - Powertrain class -> Divide into motor, battery classes
+  - Powertrain class has composition relationship with motor, battery
+* [18/06/11] - Modification - kyunghan
+  - Modify drivetrain module to body module
+  - Modify model configurations
 """
 # simulation sampling time
 Ts = 0.01

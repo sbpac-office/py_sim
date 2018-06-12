@@ -25,7 +25,7 @@ Test result
 
 Update
 ~~~~~~~~~~~~~
-* [18/06/05] - Initial release - kyunghan
+* [18/06/11] - Initial release - kyunghan
 """
 if __name__== "__main__":
     #%% 0. Import python lib modules

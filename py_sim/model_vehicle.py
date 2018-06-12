@@ -17,6 +17,10 @@ Update
 * [18/05/31] - Initial release - kyunghan
 * [18/06/01] - Revision 01 - Kyuhwan
   - Seperate powertrain class in new file
+* [18/06/11] - Revision 02 - kyunghan
+  - Modify drivetrain module to body module
+  - Modify model configurations
+  - Add regeneration module in body.brake_system
 """
 # import python lib modules
 from math import pi, sin, cos, atan

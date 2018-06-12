@@ -42,10 +42,11 @@ if __name__== "__main__":
     sys.path.append(conf_dir);
     sys.path.append(test_dir);
     # Import package lib modules
-    from model_vehicle import Mod_Veh, Mod_Body, Mod_PowerTrain
+    from model_powertrain import Mod_PowerTrain
+    from model_vehicle import Mod_Veh, Mod_Body
     from model_maneuver import Mod_Behavior, Mod_Driver
     from model_environment import Mod_Env
-    from type_def import type_DataLog
+    from sub_type_def import type_DataLog
     #%% 1. Import models
      # Powertrain import and configuration
     kona_power = Mod_PowerTrain()
@@ -107,6 +108,7 @@ if __name__== "__main__":
     sim4 = type_DataLog(['Veh_Vel','Acc_in','Brk_in','Veh_Psi','Steer_in','Wheel_theta','LaneOff','LaneOffDir'])
     sim4_veh = type_DataLog(['PosX','PosY','VehAn','RoadAn','Andiff'])
     sim4_str = type_DataLog(['steer_an','steer_off'])
+    tmp_state = []
     for sim_step in range(len(sim_time_range)):
         # Arrange vehicle position
         pos_x = kona_vehicle.pos_x_veh
@@ -123,10 +125,11 @@ if __name__== "__main__":
         [pos_x, pos_y, pos_s, pos_n, psi_veh] = kona_vehicle.Veh_position_update(veh_vel, the_wheel)
         # Store data
         sim4.StoreData([veh_vel, u_acc_in, u_brk_in, kona_vehicle.psi_veh, u_steer_in, the_wheel, beh_steer.lane_offset, beh_steer.stLateral.state])
-
         sim4_veh.StoreData([pos_x, pos_y, beh_steer.state_veh_an, beh_steer.road_an, beh_steer.psi_offset])
-
         sim4_str.StoreData([beh_steer.u_steer_yaw, beh_steer.u_steer_offset])
+        
+        beh_steer.Lon_behavior(env_sl.object_list, pos_s, env_sl.road_len, veh_vel)
+        tmp_state.append(beh_steer.veh_speed_set)
 
     [sim4_veh_vel, sim4_u_acc, sim4_u_brk, sim4_veh_psi, sim4_steer, sim4_wheel, sim4_laneoff, sim4_laneoff_dir] = sim4.get_profile_value(['Veh_Vel','Acc_in','Brk_in','Veh_Psi','Steer_in','Wheel_theta','LaneOff','LaneOffDir'])
     [sim4_veh_x, sim4_veh_y, sim4_veh_an, sim4_road_an, sim4_an_diff] = sim4_veh.get_profile_value(['PosX','PosY','VehAn','RoadAn','Andiff'])

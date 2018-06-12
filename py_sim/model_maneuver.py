@@ -142,17 +142,17 @@ class Mod_Behavior:
         """
         # State definition - Hysteresis filter with shift time
         vel_error = veh_vel_set - veh_vel
-        stLonControl = self.hysfLonCtl.filt(vel_error)        
-        # Reset control values when transition 
+        stLonControl = self.hysfLonCtl.filt(vel_error)
+        # Reset control values when transition
         if stLonControl == 1:
             stControl = 'acc'
             if self.stLonControl != 'acc':
-                self.Lon_Controller.I_val_old = 0                
+                self.Lon_Controller.I_val_old = 0
         else:
             stControl = 'brk'
             if self.stLonControl != 'brk':
-                self.Lon_Controller.I_val_old = 0                        
-        # Vehicle speed control    
+                self.Lon_Controller.I_val_old = 0
+        # Vehicle speed control
         trq_set = self.Lon_Controller.Control(veh_vel_set,veh_vel)
 
         # Determine state
@@ -164,7 +164,7 @@ class Mod_Behavior:
         elif stControl == 'brk':
             acc_out = 0
             brk_out = -trq_set/100
-        elif stControl == 'idle':            
+        elif stControl == 'idle':
             acc_out = 0
             brk_out = 0
         else:
@@ -173,9 +173,9 @@ class Mod_Behavior:
 
         self.trq_set_lon = trq_set
         self.stLonControl = stControl
-        self.u_acc = acc_out
-        self.u_brk = brk_out
-        return [acc_out, brk_out]
+        self.u_acc = sorted((0., acc_out, 1.))[1]
+        self.u_brk = sorted((0., brk_out, 1.))[1]
+        return [self.u_acc, self.u_brk]
 
 
     def Drver_set(self, DriverSet):
@@ -205,7 +205,7 @@ class Mod_Behavior:
         self.Lat_Controller_yaw = type_pid_controller(DriverSet.P_gain_yaw, DriverSet.I_gain_yaw, DriverSet.D_gain_yaw)
         self.stLonControl = 'idle'
 
-    def Maneuver_config(self, cruise_speed_set = 15, mincv_speed_set = 5, curve_coef = 1500, transition_dis = 20, forecast_dis = 100, cf_dis = 120, lat_off = 0.5):
+    def Maneuver_config(self, cruise_speed_set = 15, mincv_speed_set = 5, curve_coef = 1500, transition_dis = 20, forecast_dis = 200, cf_dis = 120, lat_off = 0.5):
         """Function overview here
 
         Functional description
@@ -265,8 +265,8 @@ class Mod_Behavior:
             stStatic.set_state('Termination','None','None')
         else:
             tmp_cur_index = np.min(np.where(road_len >= veh_position_s))-1
-            tmp_forecast_index = np.min(np.where(road_len >= (tmp_cur_index + self.conf_forecast_dis)))-1
-            tmp_transition_index = np.min(np.where(road_len >= (tmp_cur_index + self.conf_transition_dis)))-1
+            tmp_forecast_index = np.min(np.where(road_len >= (veh_position_s + self.conf_forecast_dis)))-1
+            tmp_transition_index = np.min(np.where(road_len >= (veh_position_s + self.conf_transition_dis)))-1
             # Determine objectives from vehicle location to forecasting range
             for k in range(tmp_cur_index,tmp_forecast_index+1):
                 forecast_object.merg_object(static_obj_in[k].object_class, static_obj_in[k].object_param, static_obj_in[k].object_loc_s)
@@ -278,13 +278,13 @@ class Mod_Behavior:
                 tmp_Tl_param = forecast_object.object_param[tmp_Tl_index]
                 tmp_Tl_loc = forecast_object.object_loc_s[tmp_Tl_index]
                 if tmp_Tl_param == 'red':
-                    stStatic.set_state('Tl_stop',tmp_Tl_param,tmp_Tl_loc - tmp_cur_index)
+                    stStatic.set_state('Tl_stop',tmp_Tl_param,tmp_Tl_loc - veh_position_s)
                 else:
                     if 'Curve' in transition_object.object_class:
                         tmp_cv_index = np.where(np.array(transition_object.object_class) == 'Curve')[0]
                         tmp_cv_loc = np.mean(np.array(transition_object.object_loc_s)[tmp_cv_index])
                         tmp_cv_param = np.mean(np.array(transition_object.object_param)[tmp_cv_index])
-                        stStatic.set_state('Curve',tmp_cv_param,tmp_cv_loc - tmp_cur_index)
+                        stStatic.set_state('Curve',tmp_cv_param,tmp_cv_loc - veh_position_s)
                     else:
                         stStatic.set_state('Cruise')
             else:
@@ -292,11 +292,13 @@ class Mod_Behavior:
                     tmp_cv_index = np.where(np.array(transition_object.object_class) == 'Curve')[0]
                     tmp_cv_loc = np.mean(np.array(transition_object.object_loc_s)[tmp_cv_index])
                     tmp_cv_param = np.mean(np.array(transition_object.object_param)[tmp_cv_index])
-                    stStatic.set_state('Curve',tmp_cv_param,tmp_cv_loc - tmp_cur_index)
+                    stStatic.set_state('Curve',tmp_cv_param,tmp_cv_loc - veh_position_s)
                 else:
                     stStatic.set_state('Cruise')
 
             self.stStaticList.add_state(stStatic.state, stStatic.state_param, stStatic.state_reldis)
+            self.forecast_object = forecast_object
+            self.transition_object = transition_object
         return stStatic
 
     def Dynamic_state_recog(self, pre_veh_speed, pre_veh_reldis = 250):
@@ -398,7 +400,8 @@ class Mod_Behavior:
         self.stDynamic = self.Dynamic_state_recog(pre_veh_speed, pre_veh_reldis)
         [veh_speed_set, veh_speed_set_static, veh_speed_set_dynamic] = self.Lon_vel_set(self.stStatic,self.stDynamic)
         self.veh_speed_set = veh_speed_set
-        [self.acc_out, self.brk_out] = self.Lon_control(veh_speed_set, veh_speed)
+        [acc_out, brk_out] = self.Lon_control(veh_speed_set, veh_speed)
+
         return [self.acc_out, self.brk_out]
 
     def Lateral_state_recog(self, veh_position_x, veh_position_y, veh_ang, road_x, road_y):

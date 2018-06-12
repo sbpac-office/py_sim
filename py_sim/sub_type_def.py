@@ -50,7 +50,7 @@ class type_objective:
         self.object_class.append(object_class_in)
         self.object_param.append(object_param_in)
         self.object_loc_s.append(object_loc_in)
-    def merg_object(self,object_class_in = 'None', object_param_in = 'None', object_loc_in = 0):
+    def merg_object(self,object_class_in = ['None'], object_param_in = ['None'], object_loc_in = [0]):
         self.object_class = self.object_class + object_class_in
         self.object_param = self.object_param + object_param_in
         self.object_loc_s = self.object_loc_s + object_loc_in

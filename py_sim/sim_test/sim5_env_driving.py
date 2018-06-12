@@ -77,6 +77,7 @@ if __name__ == "__main__":
     env_st = Mod_Env(road_x,road_y)
     # Set initial vehicle state at environment
     env_st.Vehicle_init_config(kona_vehicle, 2)
+    env_st.Obj_add('Tl','red',495)
     road_env_obj = env_st.object_list
     road_env_road_len = env_st.road_len
     #%% 2. Simulation config
@@ -88,6 +89,7 @@ if __name__ == "__main__":
     data_control_list = ['beh_trqset','mot_trqset','mot_trq','brk_lonctl','brk_lonbeh','trqctl_error','ctl_state','Pctl','Ictl']
     simdata = type_DataLog(data_log_list)
     simdata_ctl = type_DataLog(data_control_list)
+    
     for sim_step in range(len(sim_time_range)):
         # Arrange vehicle position
         pos_x = kona_vehicle.pos_x_veh
@@ -143,4 +145,6 @@ if __name__ == "__main__":
     ax3.plot(sim_time_range, sim_Ictl,label = 'I_val')
     ax3.legend()
     
-    
+    #%%
+    for i in range(20000):
+        print(env_st.object_list[i].object_class)
