@@ -87,7 +87,7 @@ def Filt_MovAvg(Data, odd_filt_num):
     """
     #2. Moving average filt
     # Description: mean value filterring in moving window
-    #              !!! moving window size should be odd number
+    #              moving window size should be odd number
     # Inputs -----------------------------------------------------------
     #   Data - Raw data
     #   odd_filt_num - Size of moving window
@@ -231,8 +231,33 @@ def Get_SqrVal(Value_Arry,Time_Arry,Time_Len):
     for i in range(data_len-1):
         Output_Array[time_set[i]:time_set[i+1]] = value_set[i]
     return Output_Array
+
+def Filt_LowPass(CurData,PasData,FiltTau,Ts):
+    """
+    Low pass filter
+    Description: Filtering Cur data using 1st order low-pass filter    
+    Inputs
+    -----------------------------------------------------------
+    CurData - Current raw data
+    PasData - Past filted data
+    FiltTau - Time constant
+    Ts - Sampling time
+    Outputs
+    ----------------------------------------------------------
+    FiltData - Filtted data
+    """
+    FiltCoef = FiltTau / (FiltTau + Ts)
+    FiltData = PasData + (1-FiltCoef) * (CurData - PasData)
+    return FiltData
 #%%  ----- test ground -----
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
-
+    x = np.arange(1000)
+    y = np.sin(x)
+    y_filt = [0]    
+    for i in range(1000):
+        y_filt.append(Filt_LowPass(y[i],y_filt[i],3,0.1))
+    plt.figure()
+    plt.plot(x,y)
+    plt.plot(x,y_filt[1:])
     pass

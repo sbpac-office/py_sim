@@ -75,6 +75,7 @@ class Mod_Body:
         self.the_wheel = 0
         self.t_brake = 0
         self.t_mot_des = 0
+        self.t_mot_set = 0
         self.t_drag = 0
         self.swtRegCtl = 0
         self.t_reg_set = 0
@@ -379,9 +380,9 @@ class Mod_Veh:
         the_wheel = self.ModBody.Lat_driven(u_steer)
         # Longitudinal motion
         #  Body_Lon_in --> Powertrain_Motor --> Body_Lon_out
-        [t_mot_des, t_brake] = self.ModBody.Lon_driven_in(u_acc, u_brake)
+        [t_mot_set, t_brake] = self.ModBody.Lon_driven_in(u_acc, u_brake)
         [w_wheel, t_mot_load, vel_veh] = self.ModBody.Lon_driven_out(t_brake, w_mot)
-        [w_mot, t_mot] = self.ModPower.ModMotor.Motor_control(t_mot_des, t_mot_load)
+        [w_mot, t_mot] = self.ModPower.ModMotor.Motor_control(t_mot_set, t_mot_load)
         return vel_veh, the_wheel
 
     def Veh_position_update(self, vel_veh = 0, the_wheel = 0):

@@ -119,65 +119,6 @@ class Mod_Behavior:
         self.Ts_Loc = globals()['Ts']
         self.hysfLonCtl = type_hyst(1, -1)
 
-    def Lon_control(self,veh_vel_set, veh_vel):
-        """Function overview here
-
-        Functional description
-
-        Code example wirght follows::
-
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
-            ...
-
-        Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
-
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
-        """
-        # State definition - Hysteresis filter with shift time
-        vel_error = veh_vel_set - veh_vel
-        stLonControl = self.hysfLonCtl.filt(vel_error)
-        # Reset control values when transition
-        if stLonControl == 1:
-            stControl = 'acc'
-            if self.stLonControl != 'acc':
-                self.Lon_Controller.I_val_old = 0
-        else:
-            stControl = 'brk'
-            if self.stLonControl != 'brk':
-                self.Lon_Controller.I_val_old = 0
-        # Vehicle speed control
-        trq_set = self.Lon_Controller.Control(veh_vel_set,veh_vel)
-
-        # Determine state
-
-        # Set value
-        if stControl == 'acc':
-            acc_out = trq_set/100
-            brk_out = 0
-        elif stControl == 'brk':
-            acc_out = 0
-            brk_out = -trq_set/100
-        elif stControl == 'idle':
-            acc_out = 0
-            brk_out = 0
-        else:
-            acc_out = 0
-            brk_out = 0
-
-        self.trq_set_lon = trq_set
-        self.stLonControl = stControl
-        self.u_acc = sorted((0., acc_out, 1.))[1]
-        self.u_brk = sorted((0., brk_out, 1.))[1]
-        return [self.u_acc, self.u_brk]
-
-
     def Drver_set(self, DriverSet):
         """Function overview here
 
@@ -403,6 +344,66 @@ class Mod_Behavior:
         [acc_out, brk_out] = self.Lon_control(veh_speed_set, veh_speed)
 
         return [self.acc_out, self.brk_out]
+    
+    def Lon_control(self,veh_vel_set, veh_vel):
+        """Function overview here
+
+        Functional description
+
+        Code example wirght follows::
+
+            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
+            ...
+
+        Args:
+            * Input parameters here
+            * t_mot_des:
+            * w_shaft:
+            * ...
+
+        returns:
+            * Return of function here
+            * w_mot: motor rotational speed [rad/s]
+            * t_load: load torque from body model [Nm]
+        """
+        # State definition - Hysteresis filter with shift time
+        vel_error = veh_vel_set - veh_vel
+        stLonControl = self.hysfLonCtl.filt(vel_error)
+        # Reset control values when transition
+        if stLonControl == 1:
+            stControl = 'acc'
+            if self.stLonControl != 'acc':
+                self.Lon_Controller.I_val_old = 0
+        else:
+            stControl = 'brk'
+            if self.stLonControl != 'brk':
+                self.Lon_Controller.I_val_old = 0
+        # Convert torque set 
+                
+        # Vehicle torque control
+        trq_set = self.Lon_Controller.Control(veh_vel_set,veh_vel)
+
+        # Determine state
+
+        # Set value
+        if stControl == 'acc':
+            acc_out = trq_set/100
+            brk_out = 0
+        elif stControl == 'brk':
+            acc_out = 0
+            brk_out = -trq_set/100
+        elif stControl == 'idle':
+            acc_out = 0
+            brk_out = 0
+        else:
+            acc_out = 0
+            brk_out = 0
+
+        self.trq_set_lon = trq_set
+        self.stLonControl = stControl
+        self.u_acc = sorted((0., acc_out, 1.))[1]
+        self.u_brk = sorted((0., brk_out, 1.))[1]
+        return [self.u_acc, self.u_brk]
 
     def Lateral_state_recog(self, veh_position_x, veh_position_y, veh_ang, road_x, road_y):
         """Function overview here
@@ -440,7 +441,7 @@ class Mod_Behavior:
         self.state_veh_an = veh_an
         self.road_an = road_an
         return stLateral
-
+    
     def Lat_behavior(self, veh_position_x, veh_position_y, veh_ang, road_x, road_y):
         """Function overview here
 
