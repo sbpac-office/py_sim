@@ -18,6 +18,7 @@ Update
 * [18/05/31] - Initial release - kyunghan
 * [18/06/05] - Hysteresis filter add - kyunghan
 """
+import numpy as np
 # Config variable
 Ts = 0.01
 class type_pid_controller:
@@ -97,10 +98,10 @@ class type_DataLog:
             get_name_set = self.NameSet
         return_profile_list = []
         for i in get_name_set:
-            return_profile_list.append(self.DataProfile[i])
+            return_profile_list.append(np.array(self.DataProfile[i]))
         return return_profile_list
     def get_profile_value_one(self, get_name_set):
-        return self.DataProfile[get_name_set]
+        return np.array(self.DataProfile[get_name_set])
 
 class type_hyst:
     def __init__(self, CriUp, CriLow, TrnsTime = 0):
