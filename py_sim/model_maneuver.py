@@ -21,7 +21,7 @@ Update
 from math import pi
 import numpy as np
 # import package modules
-from sub_utilities import Calc_PrDis
+from sub_utilities import Calc_PrDis, Filt_LowPass
 from sub_type_def import type_pid_controller, type_drvstate, type_objective, type_hyst
 # import config data modules
 
@@ -118,7 +118,9 @@ class Mod_Behavior:
         self.Drver_set(Driver)
         self.Ts_Loc = globals()['Ts']
         self.hysfLonCtl = type_hyst(1, -1)
-
+        self.u_acc = 0
+        self.u_brk = 0
+        self.u_steer = 0
     def Drver_set(self, DriverSet):
         """Function overview here
 
@@ -146,7 +148,7 @@ class Mod_Behavior:
         self.Lat_Controller_yaw = type_pid_controller(DriverSet.P_gain_yaw, DriverSet.I_gain_yaw, DriverSet.D_gain_yaw)
         self.stLonControl = 'idle'
 
-    def Maneuver_config(self, cruise_speed_set = 15, mincv_speed_set = 5, curve_coef = 1500, transition_dis = 20, forecast_dis = 200, cf_dis = 120, lat_off = 0.5):
+    def Maneuver_config(self, cruise_speed_set = 15, mincv_speed_set = 5, curve_coef = 1500, transition_dis = 20, forecast_dis = 200, cf_dis = 120, lat_off = 0.5, act_filt = 0.5):
         """Function overview here
 
         Functional description
@@ -174,6 +176,7 @@ class Mod_Behavior:
         self.conf_forecast_dis = forecast_dis
         self.conf_cf_dis = cf_dis
         self.conf_lat_off = lat_off
+        self.conf_act_filt = act_filt
 
     def Static_state_recog(self,static_obj_in, veh_position_s, road_len):
         """Function overview here
@@ -365,7 +368,7 @@ class Mod_Behavior:
             * Return of function here
             * w_mot: motor rotational speed [rad/s]
             * t_load: load torque from body model [Nm]
-        """
+        """       
         # State definition - Hysteresis filter with shift time
         vel_error = veh_vel_set - veh_vel
         stLonControl = self.hysfLonCtl.filt(vel_error)
@@ -387,18 +390,19 @@ class Mod_Behavior:
 
         # Set value
         if stControl == 'acc':
-            acc_out = trq_set/100
+            acc_out_raw = trq_set/100
+            acc_out = Filt_LowPass(acc_out_raw, self.u_acc,self.conf_act_filt ,self.Ts_Loc) 
             brk_out = 0
         elif stControl == 'brk':
             acc_out = 0
-            brk_out = -trq_set/100
+            brk_out_raw = -trq_set/100
+            brk_out = Filt_LowPass(brk_out_raw, self.u_brk,self.conf_act_filt ,self.Ts_Loc) 
         elif stControl == 'idle':
             acc_out = 0
             brk_out = 0
         else:
             acc_out = 0
-            brk_out = 0
-
+            brk_out = 0        
         self.trq_set_lon = trq_set
         self.stLonControl = stControl
         self.u_acc = sorted((0., acc_out, 1.))[1]
@@ -472,8 +476,8 @@ class Mod_Behavior:
             lane_offset = lane_offset
         self.lane_offset = lane_offset
         self.psi_offset = angle_offset
-        self.steer_out = self.Lat_control(lane_offset, angle_offset)
-        return self.steer_out
+        self.u_steer = self.Lat_control(lane_offset, angle_offset)
+        return self.u_steer
 
     def Lat_control(self,lane_offset, angle_dif, offset_des = 0, angle_diff_des = 0):
         """Function overview here
@@ -500,7 +504,7 @@ class Mod_Behavior:
         steer_out_yaw = self.Lat_Controller_yaw.Control(angle_diff_des,-angle_dif)
         steer_out = steer_out_offset + steer_out_yaw
         self.u_steer_offset = steer_out_offset
-        self.u_steer_yaw = steer_out_yaw
+        self.u_steer_yaw = steer_out_yaw        
         return steer_out
 #%%  ----- test ground -----
 if __name__ == "__main__":

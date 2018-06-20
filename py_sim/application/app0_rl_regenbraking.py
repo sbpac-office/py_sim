@@ -85,7 +85,7 @@ class agent:
     def __init__(self, q_init_rat, act_set, st_vel_set, st_dis_set):
         self.q_table = np.ones((len(act_set),len(st_vel_set),len(st_dis_set)))*q_init_rat
         self.act_set = act_set
-        self.set_learnconf(conf_dis = 0.9 , conf_learnrate = 0.3, conf_egreedy = 0.2)
+        self.set_learnconf(conf_dis = 0.9 , conf_learnrate = 0.7, conf_egreedy = 0.5)
         self.act_num = 0
         
     def update_q_table(self, state_list_vel, state_list_dis, act_list, reward_list):
@@ -97,6 +97,7 @@ class agent:
             current_step = len_st - step
             q_list[current_step] = reward_list[current_step] + self.conf_dis * q_list[current_step+1]            
             self.update_q_value(act_list[current_step], state_list_vel[current_step], state_list_dis[current_step], q_list[current_step])
+        return q_list
             
     def update_q_value(self, state_act, state_vel, state_dis, q_val):
         old_q = self.q_table[state_act,state_vel,state_dis]
@@ -128,7 +129,7 @@ class env:
         self.st_vel_set = st_vel_set
         self.st_dis_set = st_dis_set
     
-    def set_r_coef(self, rc_reg = 0.1, rc_drv = 10, 
+    def set_r_coef(self, rc_reg = 50, rc_drv = 1, 
                    rc_ucd = -5, rc_ucs = 4,  rc_saf_uc = -10, 
                    rc_ocd = 20, rc_ocs = 16, rc_saf_oc = -5):
         self.rc_reg = rc_reg
@@ -153,16 +154,16 @@ class env:
             self.r_saf = self.rc_saf_oc
         else:
             self.r_saf = 0
-        return self.r_reg
+        return self.r_saf
             
-    def get_reward_drv(self, data_brk):
-        self.r_drv = -self.rc_drv*(data_brk)
+    def get_reward_drv(self, data_brk, data_acc):
+        self.r_drv = -self.rc_drv*(data_brk + data_acc)
         return self.r_drv
         
-    def get_reward(self,data_vel,data_dis,data_soc,data_soc_old,data_brk):
+    def get_reward(self,data_vel,data_dis,data_soc,data_soc_old,data_brk, data_acc):
         r_reg = self.get_reward_reg(data_soc,data_soc_old)
         r_saf = self.get_reward_saf(data_vel,data_dis)
-        r_drv = self.get_reward_drv(data_brk)
+        r_drv = self.get_reward_drv(data_brk, data_acc)
         self.r_sum = r_reg + r_saf + r_drv
         return self.r_sum
     
@@ -175,7 +176,7 @@ act_index = np.arange(-0.3,0.4,0.1)
 vel_index = np.arange(0,25,1)
 dis_index = np.concatenate((np.arange(-0.5,10,0.5), np.arange(10,200,5)))
 env_brake = env(vel_index, dis_index)
-agent_mc = agent(-100, act_index, vel_index, dis_index)
+agent_mc = agent(0, act_index, vel_index, dis_index)
 
 #%% 2. Driver model config
 t_cst = 30
@@ -183,14 +184,15 @@ t_init = 300
 t_term = 700
 acc_slope = 0.01
 acc_init = -1.5
-mod_param = [t_cst, t_init, t_term, acc_slope, acc_init]
-idm_brake = IDM_brake(mod_param)        
+mod_param = [t_cst, t_init, t_term, acc_slope, acc_init]    
 #%% Iterative learning for one case - MC
-ItNumMax = 1
+#agent_mc.conf_egreedy = 0
+ItNumMax = 1000
 Learning_result = []
 Learning_control = []
+Learning_qval = []
 for ItNum in range(ItNumMax):        
-    #%% 3. Import model - set the initial value
+    # 3. Import model - set the initial value
     # Powertrain import and configuration
     kona_power = Mod_PowerTrain()
     # ~~~~~
@@ -209,6 +211,7 @@ for ItNum in range(ItNumMax):
     # Behavior set
     beh_driving = Mod_Behavior(drv_kyunghan)
     beh_driving.conf_cruise_speed_set = 20
+    idm_brake = IDM_brake(mod_param)    
     # ~~~~
     # Road data import - AMSA cycle simulation
 #    get_roadxy.set_dir(data_dir)
@@ -234,15 +237,12 @@ for ItNum in range(ItNumMax):
     the_wheel = kona_body.the_wheel
     soc = kona_power.ModBattery.SOC
     soc_old = soc
-    #%% 2. Simulation config
+    # 2. Simulation config
     Ts = 0.01
     sim_time = 200
     sim_time_range = np.arange(0,sim_time,0.01)
     flag_stop = 0
-    # Set initial simulation set
-    sim_filt_tau = 0.5
-    u_acc_filt = 0
-    u_brk_filt = 0
+    # Set initial simulation set    
     veh_vel_old = 0
     acc = 0
     t_mot_reg_set_old = 0
@@ -250,7 +250,8 @@ for ItNum in range(ItNumMax):
     # Logging data
     data_log_list = ['veh_vel','vel_set','acc_in','brk_in','pos_x','pos_y','pos_s','soc',
                      'trq_mot_set','trq_mot','trq_mot_reg','trq_brk','drv_state',
-                     'acc_ref','acc_set','rel_dis','acc','brk_state','trq_mot_load','w_wheel']
+                     'acc_ref','acc_set','rel_dis','acc','brk_state','trq_mot_load','w_wheel',
+                     'lon_state']
     sim_data = type_DataLog(data_log_list)
     rl_log_list = ['st_vel','st_vel_index','st_dis','st_dis_index','act','act_index','r_drv','r_reg','r_saf','reward']
     rl_data = type_DataLog(rl_log_list)
@@ -282,7 +283,7 @@ for ItNum in range(ItNumMax):
             # 2. Action define
             [act_val, act_index] = agent_mc.e_greedy_policy(st_vel_index, st_dis_index)
             t_mot_reg_set = t_mot_reg_set_old + act_val        
-        elif ((veh_vel <= 0.01) and (pos_s >= 500)) or (pos_s >= 1000):
+        elif ((veh_vel <= 0.01) and (pos_s >= 500)) or (pos_s >= 1000) or (flag_stop == 1):
             drv_state = 'Stop'
             veh_vel_set = 0
             acc_set = 0
@@ -301,14 +302,12 @@ for ItNum in range(ItNumMax):
             drv_state = 'Cruise'
         # 3. Vehicle simulation
         # Driver control inputs
-        [u_acc_raw, u_brk_raw] = beh_driving.Lon_control(acc_set, acc)
-        u_acc_filt = Filt_LowPass(u_acc_raw, u_acc_filt, sim_filt_tau,Ts)    
-        u_brk_filt = Filt_LowPass(u_brk_raw, u_brk_filt, sim_filt_tau,Ts)    
+        [u_acc, u_brk] = beh_driving.Lon_control(acc_set, acc)        
         u_steer_in = 0
         
         # Longitudinal drive
-        [t_brk, t_mot_reg] = kona_body.Brake_system(u_brk_filt, t_mot_reg_set)
-        t_mot_des = kona_body.Acc_system(u_acc_filt)
+        [t_brk, t_mot_reg] = kona_body.Brake_system(u_brk, t_mot_reg_set)
+        t_mot_des = kona_body.Acc_system(u_acc)
         t_mot_set = t_mot_des + t_mot_reg    
         [w_wheel, t_load, veh_vel] = kona_body.Lon_driven_out(t_brk, w_mot)
         [w_mot, t_mot] = kona_power.ModMotor.Motor_control(t_mot_set, t_load)
@@ -328,7 +327,7 @@ for ItNum in range(ItNumMax):
         
         if drv_state == 'Tl':
             # 4. Reward define
-            reward = env_brake.get_reward(veh_vel, rel_dis, soc, soc_old, u_brk_filt)
+            reward = env_brake.get_reward(veh_vel, rel_dis, soc, soc_old, u_brk, u_acc)
             r_drv = env_brake.r_drv
             r_reg = env_brake.r_reg
             r_saf = env_brake.r_saf
@@ -343,10 +342,10 @@ for ItNum in range(ItNumMax):
         
         
     
-        data_set = [veh_vel, veh_vel_set, u_acc_filt, u_brk_filt, pos_x, pos_y, pos_s,
+        data_set = [veh_vel, veh_vel_set, u_acc, u_brk, pos_x, pos_y, pos_s,
                     kona_power.ModMotor.Battery.SOC, t_mot_set, kona_power.ModMotor.t_mot, 
                     t_mot_reg, kona_body.t_brake, drv_state, 
-                    acc_ref, acc_set, rel_dis, acc, stIdm, t_load, w_wheel]
+                    acc_ref, acc_set, rel_dis, acc, stIdm, t_load, w_wheel, beh_driving.stLonControl]
         sim_data.StoreData(data_set)
         
     for name_var in data_log_list:
@@ -354,12 +353,13 @@ for ItNum in range(ItNumMax):
     for name_var in rl_log_list:
         globals()['rl_'+name_var] = rl_data.get_profile_value_one(name_var)        
     
-    agent_mc.update_q_table(rl_st_vel_index, rl_st_dis_index, rl_act_index, rl_reward)
+    q_list = agent_mc.update_q_table(rl_st_vel_index, rl_st_dis_index, rl_act_index, rl_reward)
     
     Learning_score = np.mean(np.array(rl_reward))
     print('*====== LS:',Learning_score,' , IN:', ItNum,' ====================*')
     Learning_result.append(Learning_score)    
     Learning_control.append(np.array(sim_trq_mot_reg))
+    Learning_qval.append(q_list)
 #%%
 fig = plt.figure(figsize=(6,5))
 ax1 = plt.subplot(421)
@@ -369,7 +369,7 @@ ax4 = plt.subplot(424)
 ax5 = plt.subplot(425)
 ax6 = plt.subplot(426)
 ax7 = plt.subplot(427)
-
+ax8 = plt.subplot(428)
 ax1.plot(sim_time_range, sim_veh_vel)
 ax1.plot(sim_time_range, sim_vel_set)
 ax2.plot(sim_time_range, sim_acc_in)
@@ -384,7 +384,11 @@ ax5.plot(sim_time_range, sim_trq_mot_set, label = 't_mot_set')
 ax5.plot(sim_time_range, sim_trq_mot_load, label = 't_mot_load')
 ax5.legend()
 ax7.plot(sim_time_range, sim_soc)
-ax6.plot(sim_time_range,sim_w_wheel)
+ax6.plot(rl_reward)
+ax8.plot(rl_r_drv,label='drv')
+ax8.plot(rl_r_reg,label='reg')
+ax8.plot(rl_r_saf,label='saf')
+ax8.legend()
 #%%
 fig = plt.figure()
 plt.plot(sim_time_range, sim_acc_set)
