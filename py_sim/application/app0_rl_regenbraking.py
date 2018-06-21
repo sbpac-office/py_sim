@@ -22,6 +22,7 @@ import numpy as np
 import os
 import sys
 import random
+import pickle
 # Set initial path
 base_dir = os.path.abspath('..')
 data_dir = os.path.abspath('..\data_roadxy')
@@ -85,11 +86,11 @@ class agent:
     def __init__(self, q_init_rat, act_set, st_vel_set, st_dis_set):
         self.q_table = np.ones((len(act_set),len(st_vel_set),len(st_dis_set)))*q_init_rat
         self.act_set = act_set
-        self.set_learnconf(conf_dis = 0.9 , conf_learnrate = 0.7, conf_egreedy = 0.5)
+        self.set_learnconf(conf_dis = 0.9 , conf_learnrate = 0.3, conf_egreedy = 0.5)
         self.act_num = 0
         
-    def update_q_table(self, state_list_vel, state_list_dis, act_list, reward_list):
-        len_st = np.shape(act_list)[0]
+    def update_q_table(self, act_list, state_list_vel, state_list_dis, reward_list):
+        len_st = len(act_list)
         q_list = np.zeros(len_st)
         q_list[-1] = reward_list[-1]
         self.update_q_value(act_list[-1], state_list_vel[-1], state_list_dis[-1], q_list[-1])
@@ -115,9 +116,9 @@ class agent:
             action_index = np.argmax(self.q_table[:,state_vel,state_dis])
             action_val = self.act_set[action_index]
         else:
-            action_index = int(random.uniform(0,len(self.act_set)-1))
+            action_index = int(random.uniform(0,len(self.act_set)))
             action_val = self.act_set[action_index]           
-        return action_val, action_index    
+        return action_val, action_index
 #%% Environment class       
 class env:
     def __init__(self, st_vel_set, st_dis_set):
@@ -129,9 +130,9 @@ class env:
         self.st_vel_set = st_vel_set
         self.st_dis_set = st_dis_set
     
-    def set_r_coef(self, rc_reg = 50, rc_drv = 1, 
-                   rc_ucd = -5, rc_ucs = 4,  rc_saf_uc = -10, 
-                   rc_ocd = 20, rc_ocs = 16, rc_saf_oc = -5):
+    def set_r_coef(self, rc_reg = 10, rc_drv = 1, 
+                   rc_ucd = -5, rc_ucs = 4,  rc_saf_uc = -100, 
+                   rc_ocd = 20, rc_ocs = 16, rc_saf_oc = -50):
         self.rc_reg = rc_reg
         self.rc_drv = rc_drv
         self.rc_ucd = rc_ucd
@@ -153,11 +154,11 @@ class env:
         elif data_dis >= over_cri_dis:
             self.r_saf = self.rc_saf_oc
         else:
-            self.r_saf = 0
+            self.r_saf = 1
         return self.r_saf
             
     def get_reward_drv(self, data_brk, data_acc):
-        self.r_drv = -self.rc_drv*(data_brk + data_acc)
+        self.r_drv = self.rc_drv*(0 - data_brk - data_acc)
         return self.r_drv
         
     def get_reward(self,data_vel,data_dis,data_soc,data_soc_old,data_brk, data_acc):
@@ -172,8 +173,8 @@ class env:
         [st_dis, st_dis_index] = int_index(self.st_dis_set,data_dis)
         return st_vel, st_vel_index, st_dis, st_dis_index
 #%% 1. RL config
-act_index = np.arange(-0.3,0.4,0.1)
-vel_index = np.arange(0,25,1)
+act_index = np.arange(-0.1,0.12,0.02)
+vel_index = np.arange(0,25,0.5)
 dis_index = np.concatenate((np.arange(-0.5,10,0.5), np.arange(10,200,5)))
 env_brake = env(vel_index, dis_index)
 agent_mc = agent(0, act_index, vel_index, dis_index)
@@ -186,12 +187,26 @@ acc_slope = 0.01
 acc_init = -1.5
 mod_param = [t_cst, t_init, t_term, acc_slope, acc_init]    
 #%% Iterative learning for one case - MC
-#agent_mc.conf_egreedy = 0
-ItNumMax = 1000
+# Load learning agent
+#with open('agent_result.p','rb') as file:
+#    agent_mc = pickle.load(file)
+
+agent_mc.conf_learnrate = 0.003
+agent_mc.conf_dis = 0.999
+env_brake.rc_reg = 1000
+ItNumMax = 4000
 Learning_result = []
 Learning_control = []
 Learning_qval = []
-for ItNum in range(ItNumMax):        
+swt_valid = 1
+for ItNum in range(ItNumMax):
+    swt_valid = ItNum%100        
+    egreedy_dis_fac = ItNum//100
+    if swt_valid == 0:
+        agent_mc.conf_egreedy = 0
+        print('============================= validation =================================')        
+    else:
+        agent_mc.conf_egreedy = 0.5 - egreedy_dis_fac/100
     # 3. Import model - set the initial value
     # Powertrain import and configuration
     kona_power = Mod_PowerTrain()
@@ -304,7 +319,7 @@ for ItNum in range(ItNumMax):
         # Driver control inputs
         [u_acc, u_brk] = beh_driving.Lon_control(acc_set, acc)        
         u_steer_in = 0
-        
+#        u_brk = 0
         # Longitudinal drive
         [t_brk, t_mot_reg] = kona_body.Brake_system(u_brk, t_mot_reg_set)
         t_mot_des = kona_body.Acc_system(u_acc)
@@ -353,14 +368,20 @@ for ItNum in range(ItNumMax):
     for name_var in rl_log_list:
         globals()['rl_'+name_var] = rl_data.get_profile_value_one(name_var)        
     
-    q_list = agent_mc.update_q_table(rl_st_vel_index, rl_st_dis_index, rl_act_index, rl_reward)
+    q_list = agent_mc.update_q_table(rl_act_index, rl_st_vel_index, rl_st_dis_index, rl_reward)
     
     Learning_score = np.mean(np.array(rl_reward))
     print('*====== LS:',Learning_score,' , IN:', ItNum,' ====================*')
     Learning_result.append(Learning_score)    
     Learning_control.append(np.array(sim_trq_mot_reg))
     Learning_qval.append(q_list)
+plt.figure()
+plt.plot(rl_reward)    
+plt.plot(Learning_qval[-1])    
 #%%
+with open('agent_result.p','wb') as file:
+    pickle.dump(agent_mc, file)
+        
 fig = plt.figure(figsize=(6,5))
 ax1 = plt.subplot(421)
 ax2 = plt.subplot(422)
@@ -382,37 +403,37 @@ ax5.plot(sim_time_range, sim_trq_mot_reg, label = 't_reg')
 ax5.plot(sim_time_range, sim_trq_mot, label = 't_mot')
 ax5.plot(sim_time_range, sim_trq_mot_set, label = 't_mot_set')
 ax5.plot(sim_time_range, sim_trq_mot_load, label = 't_mot_load')
-ax5.legend()
+#ax5.legend()
 ax7.plot(sim_time_range, sim_soc)
 ax6.plot(rl_reward)
 ax8.plot(rl_r_drv,label='drv')
 ax8.plot(rl_r_reg,label='reg')
 ax8.plot(rl_r_saf,label='saf')
-ax8.legend()
-#%%
-fig = plt.figure()
-plt.plot(sim_time_range, sim_acc_set)
-plt.plot(sim_time_range, sim_acc_ref)
-plt.plot(sim_time_range, sim_acc)
-plt.plot(sim_time_range, sim_brk_state)
-
-fig = plt.figure()
-plt.plot(sim_time_range, sim_brk_in)
-plt.plot(sim_time_range, sim_soc)
+#ax8.legend()
+##%%
+#fig = plt.figure()
+#plt.plot(sim_time_range, sim_acc_set)
+#plt.plot(sim_time_range, sim_acc_ref)
+#plt.plot(sim_time_range, sim_acc)
+#plt.plot(sim_time_range, sim_brk_state)
+#
+#fig = plt.figure()
+#plt.plot(sim_time_range, sim_brk_in)
+#plt.plot(sim_time_range, sim_soc)
 #%%
 
 under_cri_rel_dis = -5
 under_cri_slope = 4
-under_cri_line = np.array(sim_veh_vel)*under_cri_slope + under_cri_rel_dis
+under_cri_line = np.array(rl_st_vel)*under_cri_slope + under_cri_rel_dis
 
 over_cri_rel_dis = 20
 over_cri_slope = 16
-over_cri_slope = np.array(sim_veh_vel)*over_cri_slope + over_cri_rel_dis
+over_cri_slope = np.array(rl_st_vel)*over_cri_slope + over_cri_rel_dis
 
 fig = plt.figure()
-plt.plot(sim_veh_vel,sim_rel_dis,'.')
-plt.plot(sim_veh_vel,under_cri_line)
-plt.plot(sim_veh_vel,over_cri_slope)
+plt.plot(rl_st_vel,rl_st_dis,'.')
+plt.plot(rl_st_vel,under_cri_line)
+plt.plot(rl_st_vel,over_cri_slope)
 
 #%%    
 #tmp_len = []
