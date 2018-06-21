@@ -174,8 +174,8 @@ class env:
         return st_vel, st_vel_index, st_dis, st_dis_index
 #%% 1. RL config
 act_index = np.arange(-0.1,0.12,0.02)
-vel_index = np.arange(0,25,0.5)
-dis_index = np.concatenate((np.arange(-0.5,10,0.5), np.arange(10,200,5)))
+vel_index = np.arange(0,25,0.1)
+dis_index = np.concatenate((np.arange(-0.5,10,0.1), np.arange(10,200,1)))
 env_brake = env(vel_index, dis_index)
 agent_mc = agent(0, act_index, vel_index, dis_index)
 
@@ -191,10 +191,11 @@ mod_param = [t_cst, t_init, t_term, acc_slope, acc_init]
 #with open('agent_result.p','rb') as file:
 #    agent_mc = pickle.load(file)
 
-agent_mc.conf_learnrate = 0.003
-agent_mc.conf_dis = 0.999
-env_brake.rc_reg = 1000
-ItNumMax = 4000
+agent_mc.conf_learnrate = 0.05
+agent_mc.conf_dis = 0.995
+e_greedy_config = 0.7
+env_brake.rc_reg = 50
+ItNumMax = 1000
 Learning_result = []
 Learning_control = []
 Learning_qval = []
@@ -206,7 +207,7 @@ for ItNum in range(ItNumMax):
         agent_mc.conf_egreedy = 0
         print('============================= validation =================================')        
     else:
-        agent_mc.conf_egreedy = 0.5 - egreedy_dis_fac/100
+        agent_mc.conf_egreedy = e_greedy_config - egreedy_dis_fac/20
     # 3. Import model - set the initial value
     # Powertrain import and configuration
     kona_power = Mod_PowerTrain()
@@ -268,7 +269,7 @@ for ItNum in range(ItNumMax):
                      'acc_ref','acc_set','rel_dis','acc','brk_state','trq_mot_load','w_wheel',
                      'lon_state']
     sim_data = type_DataLog(data_log_list)
-    rl_log_list = ['st_vel','st_vel_index','st_dis','st_dis_index','act','act_index','r_drv','r_reg','r_saf','reward']
+    rl_log_list = ['st_vel','st_vel_index','st_dis','st_dis_index','act','act_index','r_drv','r_reg','r_saf','reward','step']
     rl_data = type_DataLog(rl_log_list)
     
     for sim_step in range(len(sim_time_range)):
@@ -346,7 +347,7 @@ for ItNum in range(ItNumMax):
             r_drv = env_brake.r_drv
             r_reg = env_brake.r_reg
             r_saf = env_brake.r_saf
-            rl_log_data = [st_vel,st_vel_index,st_dis,st_dis_index,act_val,act_index,r_drv,r_reg,r_saf,reward]
+            rl_log_data = [st_vel,st_vel_index,st_dis,st_dis_index,act_val,act_index,r_drv,r_reg,r_saf,reward,sim_step]
             rl_data.StoreData(rl_log_data)        
             
         # 5. State update
@@ -370,8 +371,8 @@ for ItNum in range(ItNumMax):
     
     q_list = agent_mc.update_q_table(rl_act_index, rl_st_vel_index, rl_st_dis_index, rl_reward)
     
-    Learning_score = np.mean(np.array(rl_reward))
-    print('*====== LS:',Learning_score,' , IN:', ItNum,' ====================*')
+    Learning_score = np.array((np.mean(np.array(rl_reward)),np.mean(np.array(rl_r_drv)),np.mean(np.array(rl_r_reg)),np.mean(np.array(rl_r_saf))))
+    print('=== LS:',Learning_score,' , IN:', ItNum,'===')
     Learning_result.append(Learning_score)    
     Learning_control.append(np.array(sim_trq_mot_reg))
     Learning_qval.append(q_list)
@@ -393,8 +394,8 @@ ax7 = plt.subplot(427)
 ax8 = plt.subplot(428)
 ax1.plot(sim_time_range, sim_veh_vel)
 ax1.plot(sim_time_range, sim_vel_set)
-ax2.plot(sim_time_range, sim_acc_in)
-ax2.plot(sim_time_range, sim_brk_in)
+ax3.plot(sim_time_range, sim_acc_in)
+ax3.plot(sim_time_range, sim_brk_in)
 ax3.plot(sim_time_range, sim_acc_set)
 ax3.plot(sim_time_range, sim_acc_ref)
 ax3.plot(sim_time_range, sim_acc)
@@ -405,10 +406,10 @@ ax5.plot(sim_time_range, sim_trq_mot_set, label = 't_mot_set')
 ax5.plot(sim_time_range, sim_trq_mot_load, label = 't_mot_load')
 #ax5.legend()
 ax7.plot(sim_time_range, sim_soc)
-ax6.plot(rl_reward)
-ax8.plot(rl_r_drv,label='drv')
-ax8.plot(rl_r_reg,label='reg')
-ax8.plot(rl_r_saf,label='saf')
+ax6.plot(sim_time_range[rl_step],Learning_qval[-1])
+ax8.plot(sim_time_range[rl_step],rl_r_drv,label='drv')
+ax8.plot(sim_time_range[rl_step],rl_r_reg,label='reg')
+ax8.plot(sim_time_range[rl_step],rl_r_saf,label='saf')
 #ax8.legend()
 ##%%
 #fig = plt.figure()
