@@ -57,7 +57,7 @@ class IDM_brake:
         self.t_init = mod_param[1]
         self.t_term = mod_param[2]
         self.acc_slope_init = mod_param[3]
-        self.acc_ref_adj = mod_param[4]    
+        self.acc_ref_rat = mod_param[4]    
         self.t_step = 0
         self.acc_set_old = 0
         self.flag_adj = 0
@@ -68,6 +68,7 @@ class IDM_brake:
             stIdm = 0
         elif (self.t_step <= self.t_init + self.t_cst) and (self.flag_adj == 0):
             acc_set = self.acc_set_old - self.acc_slope_init
+            self.acc_ref_adj = acc_ref * self.acc_ref_rat
             if acc_set <= self.acc_ref_adj:
                 self.flag_adj = 1
             stIdm = 1
@@ -77,7 +78,9 @@ class IDM_brake:
         elif self.flag_adj == 1:
             acc_set = acc_ref
             stIdm = 3
-        
+        else:
+            acc_set = 0
+            stIdm = -1
         self.acc_set_old = acc_set    
         self.t_step = self.t_step + 1
         return acc_set, stIdm
@@ -131,8 +134,8 @@ class env:
         self.st_dis_set = st_dis_set
     
     def set_r_coef(self, rc_reg = 10, rc_drv = 1, 
-                   rc_ucd = -5, rc_ucs = 4,  rc_saf_uc = -100, 
-                   rc_ocd = 20, rc_ocs = 16, rc_saf_oc = -50):
+                   rc_ucd = -3, rc_ucs = 4,  rc_saf_uc = -100, 
+                   rc_ocd = 5, rc_ocs = 16, rc_saf_oc = -50):
         self.rc_reg = rc_reg
         self.rc_drv = rc_drv
         self.rc_ucd = rc_ucd
@@ -175,7 +178,7 @@ class env:
 #%% 1. RL config
 act_index = np.arange(-0.1,0.12,0.02)
 vel_index = np.arange(0,25,0.1)
-dis_index = np.concatenate((np.arange(-0.5,10,0.1), np.arange(10,200,1)))
+dis_index = np.concatenate((np.arange(-0.5,10,0.1), np.arange(10,250,1)))
 env_brake = env(vel_index, dis_index)
 agent_mc = agent(0, act_index, vel_index, dis_index)
 
@@ -184,8 +187,11 @@ t_cst = 30
 t_init = 300
 t_term = 700
 acc_slope = 0.01
-acc_init = -1.5
-mod_param = [t_cst, t_init, t_term, acc_slope, acc_init]    
+acc_init = 0.9
+mod_param = [t_cst, t_init, t_term, acc_slope, acc_init]  
+# Driving environment random factor
+drv_conf = {'coast_off':0,'coast_sl':10}
+
 #%% Iterative learning for one case - MC
 # Load learning agent
 #with open('agent_result.p','rb') as file:
@@ -195,11 +201,21 @@ agent_mc.conf_learnrate = 0.05
 agent_mc.conf_dis = 0.995
 e_greedy_config = 0.7
 env_brake.rc_reg = 50
-ItNumMax = 1000
+ItNumMax = 1
 Learning_result = []
 Learning_control = []
 Learning_qval = []
 swt_valid = 1
+
+# Learning results
+learn_log_list_veh = ['veh_vel','veh_dis','veh_acc','veh_acc_set','veh_acc_ref','mot_trq_set','mot_trq_reg','mot_trq']
+learn_log_list_drv = ['drv_acc','drv_brk','coast_vel','coast_dis']
+learn_log_list_result = ['q_list','act_val','r_drv','r_reg','r_saf','step']
+
+lrn_veh = type_DataLog(learn_log_list_veh)
+lrn_drv = type_DataLog(learn_log_list_drv)
+lrn_result = type_DataLog(learn_log_list_result)
+
 for ItNum in range(ItNumMax):
     swt_valid = ItNum%100        
     egreedy_dis_fac = ItNum//100
@@ -207,14 +223,14 @@ for ItNum in range(ItNumMax):
         agent_mc.conf_egreedy = 0
         print('============================= validation =================================')        
     else:
-        agent_mc.conf_egreedy = e_greedy_config - egreedy_dis_fac/20
+        agent_mc.conf_egreedy = e_greedy_config - egreedy_dis_fac/50
     # 3. Import model - set the initial value
     # Powertrain import and configuration
     kona_power = Mod_PowerTrain()
     # ~~~~~
     # Bodymodel import and configuration
     kona_body = Mod_Body()
-    kona_body.swtRegCtl = 2
+    kona_body.swtRegCtl = 0
     # ~~~~
     # Vehicle set
     kona_vehicle = Mod_Veh(kona_power, kona_body)
@@ -225,9 +241,16 @@ for ItNum in range(ItNumMax):
     drv_kyunghan.P_gain_lon = 5 
     # ~~~~
     # Behavior set
-    beh_driving = Mod_Behavior(drv_kyunghan)
-    beh_driving.conf_cruise_speed_set = 20
-    idm_brake = IDM_brake(mod_param)    
+    beh_driving = Mod_Behavior(drv_kyunghan)    
+    idm_brake = IDM_brake(mod_param)
+    # Set the drv config
+    #   cruise speed
+    beh_driving.conf_cruise_speed_set = random.uniform(18, 22)
+    #   fore casting distance
+    drv_set_coast_sl = drv_conf['coast_sl'] * random.uniform(0.8, 1.2)
+    drv_set_coast_off = drv_conf['coast_off'] * random.uniform(0.8, 1.2)
+    drv_set_coast_dis = beh_driving.conf_cruise_speed_set * drv_set_coast_sl + drv_set_coast_off
+#    drv_set_coast_dis = 200
     # ~~~~
     # Road data import - AMSA cycle simulation
 #    get_roadxy.set_dir(data_dir)
@@ -238,10 +261,7 @@ for ItNum in range(ItNumMax):
     # ~~~~
     # Environment setup
     # Set traffic location
-    sim_env_tl_loc = 1000
-    # Set rel_dis to coast
-    drv_set_coast_dis = 150
-    
+    sim_env_tl_loc = 1000    
     # Set initial vehicle state at environment
 #    env_st.Vehicle_init_config(kona_vehicle, 2)
     pos_x = kona_vehicle.pos_x_veh
@@ -269,9 +289,8 @@ for ItNum in range(ItNumMax):
                      'acc_ref','acc_set','rel_dis','acc','brk_state','trq_mot_load','w_wheel',
                      'lon_state']
     sim_data = type_DataLog(data_log_list)
-    rl_log_list = ['st_vel','st_vel_index','st_dis','st_dis_index','act','act_index','r_drv','r_reg','r_saf','reward','step']
-    rl_data = type_DataLog(rl_log_list)
-    
+    rl_log_list = ['st_vel','st_vel_index','st_dis','st_dis_index','act','act_index','r_drv','r_reg','r_saf','reward','step']    
+    rl_data = type_DataLog(rl_log_list)    
     for sim_step in range(len(sim_time_range)):
         '''
         Reinforcement learning
@@ -309,7 +328,8 @@ for ItNum in range(ItNumMax):
             t_mot_reg_set = 0
             flag_stop = 1
         else:
-            veh_vel_set = 15        
+            veh_vel_set = beh_driving.conf_cruise_speed_set    
+#            veh_vel_set = 20
             acc_set = 1 * (veh_vel_set - veh_vel)
             acc_ref = acc_set
             u_brk_idm_ff = 0
@@ -373,16 +393,23 @@ for ItNum in range(ItNumMax):
     
     Learning_score = np.array((np.mean(np.array(rl_reward)),np.mean(np.array(rl_r_drv)),np.mean(np.array(rl_r_reg)),np.mean(np.array(rl_r_saf))))
     print('=== LS:',Learning_score,' , IN:', ItNum,'===')
-    Learning_result.append(Learning_score)    
-    Learning_control.append(np.array(sim_trq_mot_reg))
-    Learning_qval.append(q_list)
-plt.figure()
-plt.plot(rl_reward)    
-plt.plot(Learning_qval[-1])    
-#%%
-with open('agent_result.p','wb') as file:
-    pickle.dump(agent_mc, file)
+    
+    # Log data
+    if swt_valid == 0:
+#        learn_log_list_veh = ['veh_vel','veh_dis','veh_acc','veh_acc_set','veh_acc_ref','mot_trq_set','mot_trq_reg','mot_trq']
+#        learn_log_list_drv = ['drv_acc','drv_brk','coast_vel','coast_dis']
+#        learn_log_list_result = ['q_list','act_val','r_drv','r_reg','r_saf','step']
         
+        lrn_veh.StoreData([sim_veh_vel, sim_rel_dis, sim_acc, sim_acc_set, sim_acc_ref, sim_trq_mot_set, sim_trq_mot_reg, sim_trq_mot])
+        lrn_drv.StoreData([sim_acc_in, sim_brk_in, beh_driving.conf_cruise_speed_set, drv_set_coast_dis])
+        lrn_result.StoreData([q_list, rl_act, rl_r_drv, rl_r_reg, rl_r_saf,rl_step])
+        with open('q_table.p','ab') as file:
+            pickle.dump(agent_mc.q_table, file)
+with open('lrn_result.p','wb') as file:
+    pickle.dump(lrn_veh,file)
+    pickle.dump(lrn_drv,file)
+    pickle.dump(lrn_result,file)   
+#%%       
 fig = plt.figure(figsize=(6,5))
 ax1 = plt.subplot(421)
 ax2 = plt.subplot(422)
@@ -422,12 +449,11 @@ ax8.plot(sim_time_range[rl_step],rl_r_saf,label='saf')
 #plt.plot(sim_time_range, sim_brk_in)
 #plt.plot(sim_time_range, sim_soc)
 #%%
-
-under_cri_rel_dis = -5
+under_cri_rel_dis = -3
 under_cri_slope = 4
 under_cri_line = np.array(rl_st_vel)*under_cri_slope + under_cri_rel_dis
 
-over_cri_rel_dis = 20
+over_cri_rel_dis = 5
 over_cri_slope = 16
 over_cri_slope = np.array(rl_st_vel)*over_cri_slope + over_cri_rel_dis
 
@@ -435,15 +461,3 @@ fig = plt.figure()
 plt.plot(rl_st_vel,rl_st_dis,'.')
 plt.plot(rl_st_vel,under_cri_line)
 plt.plot(rl_st_vel,over_cri_slope)
-
-#%%    
-#tmp_len = []
-#for i in range(len(road_env_obj)):
-#    tmp_obj = road_env_obj[i]
-#    print(tmp_obj.object_class)
-#
-## Simplified driver model for learning test
-#def IDM_BrakeModel(driver_char,vel,dis):
-#    acc_ref = 
-#    # 
-#    acc_ref
