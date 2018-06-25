@@ -86,37 +86,37 @@ class IDM_brake:
         return acc_set, stIdm
 #%% Agent class
 class agent:
-    def __init__(self, q_init_rat, act_set, st_vel_set, st_dis_set):
-        self.q_table = np.ones((len(act_set),len(st_vel_set),len(st_dis_set)))*q_init_rat
+    def __init__(self, q_init_rat, act_set, st_vel_set, st_dis_set, st_time_set):
+        self.q_table = np.ones((len(act_set),len(st_vel_set),len(st_dis_set),len(st_time_set)))*q_init_rat
         self.act_set = act_set
         self.set_learnconf(conf_dis = 0.9 , conf_learnrate = 0.3, conf_egreedy = 0.5)
         self.act_num = 0
         
-    def update_q_table(self, act_list, state_list_vel, state_list_dis, reward_list):
+    def update_q_table(self, act_list, state_list_vel, state_list_dis, state_list_time, reward_list):
         len_st = len(act_list)
         q_list = np.zeros(len_st)
         q_list[-1] = reward_list[-1]
-        self.update_q_value(act_list[-1], state_list_vel[-1], state_list_dis[-1], q_list[-1])
+        self.update_q_value(act_list[-1], state_list_vel[-1], state_list_dis[-1], state_list_time[-1], q_list[-1])
         for step in range(2,len_st+1):
             current_step = len_st - step
             q_list[current_step] = reward_list[current_step] + self.conf_dis * q_list[current_step+1]            
-            self.update_q_value(act_list[current_step], state_list_vel[current_step], state_list_dis[current_step], q_list[current_step])
+            self.update_q_value(act_list[current_step], state_list_vel[current_step], state_list_dis[current_step], state_list_time[current_step], q_list[current_step])
         return q_list
             
-    def update_q_value(self, state_act, state_vel, state_dis, q_val):
-        old_q = self.q_table[state_act,state_vel,state_dis]
-        self.q_table[state_act,state_vel,state_dis] = old_q + self.conf_learnrate * (q_val - old_q)
-        return self.q_table[state_act, state_vel, state_dis]
+    def update_q_value(self, state_act, state_vel, state_dis, state_time, q_val):
+        old_q = self.q_table[state_act,state_vel,state_dis,state_time]
+        self.q_table[state_act,state_vel,state_dis,state_time] = old_q + self.conf_learnrate * (q_val - old_q)
+        return self.q_table[state_act, state_vel, state_dis, state_time]
 
     def set_learnconf(self, conf_dis, conf_learnrate, conf_egreedy):
         self.conf_dis = conf_dis
         self.conf_learnrate = conf_learnrate  
         self.conf_egreedy = conf_egreedy
     
-    def e_greedy_policy(self,state_vel, state_dis):
+    def e_greedy_policy(self,state_vel, state_dis, state_time):
         rand_prob = random.random()
         if rand_prob>=self.conf_egreedy:
-            action_index = np.argmax(self.q_table[:,state_vel,state_dis])
+            action_index = np.argmax(self.q_table[:,state_vel,state_dis,state_time])
             action_val = self.act_set[action_index]
         else:
             action_index = int(random.uniform(0,len(self.act_set)))
@@ -124,7 +124,7 @@ class agent:
         return action_val, action_index
 #%% Environment class       
 class env:
-    def __init__(self, st_vel_set, st_dis_set):
+    def __init__(self, st_vel_set, st_dis_set, st_time_set):
         self.r_reg = 0
         self.r_drv = 0
         self.r_saf = 0
@@ -132,6 +132,7 @@ class env:
         self.set_r_coef()
         self.st_vel_set = st_vel_set
         self.st_dis_set = st_dis_set
+        self.st_time_set = st_time_set
     
     def set_r_coef(self, rc_reg = 10, rc_drv = 1, 
                    rc_ucd = -3, rc_ucs = 4,  rc_saf_uc = -100, 
@@ -171,16 +172,19 @@ class env:
         self.r_sum = r_reg + r_saf + r_drv
         return self.r_sum
     
-    def get_state(self, data_vel, data_dis):        
+    def get_state(self, data_vel, data_dis, data_time):        
         [st_vel, st_vel_index] = int_index(self.st_vel_set,data_vel)
         [st_dis, st_dis_index] = int_index(self.st_dis_set,data_dis)
-        return st_vel, st_vel_index, st_dis, st_dis_index
+        [st_time, st_time_index] = int_index(self.st_time_set,data_time)
+        return st_vel, st_vel_index, st_dis, st_dis_index, st_time, st_time_index
 #%% 1. RL config
 act_index = np.arange(-0.1,0.12,0.02)
-vel_index = np.arange(0,25,0.1)
-dis_index = np.concatenate((np.arange(-0.5,10,0.1), np.arange(10,250,1)))
-env_brake = env(vel_index, dis_index)
-agent_mc = agent(0, act_index, vel_index, dis_index)
+vel_index = np.arange(0,25,0.5)
+dis_index = np.concatenate((np.arange(-0.5,10,0.5), np.arange(10,300,5)))
+time_index = np.arange(0,40,0.5)
+#%%
+env_brake = env(vel_index, dis_index, time_index)
+agent_mc = agent(0, act_index, vel_index, dis_index, time_index)
 
 #%% 2. Driver model config
 t_cst = 30
@@ -201,12 +205,11 @@ agent_mc.conf_learnrate = 0.05
 agent_mc.conf_dis = 0.995
 e_greedy_config = 0.7
 env_brake.rc_reg = 50
-ItNumMax = 1
+ItNumMax = 1000
 Learning_result = []
 Learning_control = []
 Learning_qval = []
 swt_valid = 1
-
 # Learning results
 learn_log_list_veh = ['veh_vel','veh_dis','veh_acc','veh_acc_set','veh_acc_ref','mot_trq_set','mot_trq_reg','mot_trq']
 learn_log_list_drv = ['drv_acc','drv_brk','coast_vel','coast_dis']
@@ -230,7 +233,7 @@ for ItNum in range(ItNumMax):
     # ~~~~~
     # Bodymodel import and configuration
     kona_body = Mod_Body()
-    kona_body.swtRegCtl = 0
+    kona_body.swtRegCtl = 2
     # ~~~~
     # Vehicle set
     kona_vehicle = Mod_Veh(kona_power, kona_body)
@@ -278,6 +281,7 @@ for ItNum in range(ItNumMax):
     sim_time = 200
     sim_time_range = np.arange(0,sim_time,0.01)
     flag_stop = 0
+    time_step = 0
     # Set initial simulation set    
     veh_vel_old = 0
     acc = 0
@@ -289,7 +293,8 @@ for ItNum in range(ItNumMax):
                      'acc_ref','acc_set','rel_dis','acc','brk_state','trq_mot_load','w_wheel',
                      'lon_state']
     sim_data = type_DataLog(data_log_list)
-    rl_log_list = ['st_vel','st_vel_index','st_dis','st_dis_index','act','act_index','r_drv','r_reg','r_saf','reward','step']    
+    rl_log_list = ['st_vel','st_vel_index','st_dis','st_dis_index','st_time','st_time_index','act','act_index',
+                   'r_drv','r_reg','r_saf','reward','step']    
     rl_data = type_DataLog(rl_log_list)    
     for sim_step in range(len(sim_time_range)):
         '''
@@ -312,11 +317,12 @@ for ItNum in range(ItNumMax):
             acc_ref = sorted((-10, -veh_vel**2/(rel_dis), 0))[1]        
             [acc_set, stIdm] = idm_brake.set_acc(acc_ref)
             u_brk_idm_ff = -acc_set/7
+            time_step = sorted((0.0,time_step+Ts,39.0))[1]
             drv_state = 'Tl'
             # 1. State define
-            [st_vel, st_vel_index, st_dis, st_dis_index] = env_brake.get_state(veh_vel, rel_dis)                
+            [st_vel, st_vel_index, st_dis, st_dis_index, st_time, st_time_index] = env_brake.get_state(veh_vel, rel_dis, time_step)                
             # 2. Action define
-            [act_val, act_index] = agent_mc.e_greedy_policy(st_vel_index, st_dis_index)
+            [act_val, act_index] = agent_mc.e_greedy_policy(st_vel_index, st_dis_index, st_time_index)
             t_mot_reg_set = t_mot_reg_set_old + act_val        
         elif ((veh_vel <= 0.01) and (pos_s >= 500)) or (pos_s >= 1000) or (flag_stop == 1):
             drv_state = 'Stop'
@@ -326,7 +332,7 @@ for ItNum in range(ItNumMax):
             u_brk_idm_ff = 0
             stIdm = -1
             t_mot_reg_set = 0
-            flag_stop = 1
+            flag_stop = 1            
         else:
             veh_vel_set = beh_driving.conf_cruise_speed_set    
 #            veh_vel_set = 20
@@ -367,7 +373,8 @@ for ItNum in range(ItNumMax):
             r_drv = env_brake.r_drv
             r_reg = env_brake.r_reg
             r_saf = env_brake.r_saf
-            rl_log_data = [st_vel,st_vel_index,st_dis,st_dis_index,act_val,act_index,r_drv,r_reg,r_saf,reward,sim_step]
+            rl_log_data = [st_vel,st_vel_index,st_dis,st_dis_index,st_time,st_time_index,
+                           act_val,act_index,r_drv,r_reg,r_saf,reward,sim_step]
             rl_data.StoreData(rl_log_data)        
             
         # 5. State update
@@ -376,12 +383,11 @@ for ItNum in range(ItNumMax):
         soc_old = soc
         t_mot_reg_set_old = t_mot_reg_set
         
-        
-    
         data_set = [veh_vel, veh_vel_set, u_acc, u_brk, pos_x, pos_y, pos_s,
                     kona_power.ModMotor.Battery.SOC, t_mot_set, kona_power.ModMotor.t_mot, 
                     t_mot_reg, kona_body.t_brake, drv_state, 
                     acc_ref, acc_set, rel_dis, acc, stIdm, t_load, w_wheel, beh_driving.stLonControl]
+        
         sim_data.StoreData(data_set)
         
     for name_var in data_log_list:
@@ -389,7 +395,7 @@ for ItNum in range(ItNumMax):
     for name_var in rl_log_list:
         globals()['rl_'+name_var] = rl_data.get_profile_value_one(name_var)        
     
-    q_list = agent_mc.update_q_table(rl_act_index, rl_st_vel_index, rl_st_dis_index, rl_reward)
+    q_list = agent_mc.update_q_table(rl_act_index, rl_st_vel_index, rl_st_dis_index, rl_st_time_index, rl_reward)
     
     Learning_score = np.array((np.mean(np.array(rl_reward)),np.mean(np.array(rl_r_drv)),np.mean(np.array(rl_r_reg)),np.mean(np.array(rl_r_saf))))
     print('=== LS:',Learning_score,' , IN:', ItNum,'===')
@@ -409,6 +415,15 @@ with open('lrn_result.p','wb') as file:
     pickle.dump(lrn_veh,file)
     pickle.dump(lrn_drv,file)
     pickle.dump(lrn_result,file)   
+#%%
+with open('test.pickle','wb') as file_s:
+    pickle.dump([1,1,1,1,1,2,3,4,5,6],file_s)
+#%%
+with open('test.pickle','rb') as file_l:
+    data = pickle.load(file_l)
+    
+
+    
 #%%       
 fig = plt.figure(figsize=(6,5))
 ax1 = plt.subplot(421)
@@ -433,7 +448,7 @@ ax5.plot(sim_time_range, sim_trq_mot_set, label = 't_mot_set')
 ax5.plot(sim_time_range, sim_trq_mot_load, label = 't_mot_load')
 #ax5.legend()
 ax7.plot(sim_time_range, sim_soc)
-ax6.plot(sim_time_range[rl_step],Learning_qval[-1])
+#ax6.plot(sim_time_range[rl_step],Learning_qval[-1])
 ax8.plot(sim_time_range[rl_step],rl_r_drv,label='drv')
 ax8.plot(sim_time_range[rl_step],rl_r_reg,label='reg')
 ax8.plot(sim_time_range[rl_step],rl_r_saf,label='saf')
