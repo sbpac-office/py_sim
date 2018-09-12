@@ -1,6 +1,4 @@
 
-import numpy as np
-from sub_type_def import type_pid_controller
 # import package modules
 """
 Simulation model : Vehicle
@@ -37,20 +35,23 @@ Ts = 0.01
 you can declare other sampling time in application as vairable ``Ts``
 
 """
+import numpy as np
+from sub_type_def import type_pid_controller
 #%% Motor class
-
 class Motor:
     def __init__(self, M_Battery):
+        self.v_mot = 320
+        self.i_mot = 0
         self.w_mot = 0
         self.t_mot = 0
-        self.p_mot = 0
-        self.t_load = 0
+        self.p_mot_mech = 0
+        self.p_mot_loss = 0
+        self.p_mot_elec = 0
         self.Motor_config()
         self.Ts_loc = Ts
         self.Battery = M_Battery
-        self.MotController = type_pid_controller(0.5,5,0)
 
-    def Motor_config(self, conf_rm = 0.1, conf_lm = 0.1, conf_kb = 6.5e-4, conf_kt = 0.1, conf_jm = 2e-3, conf_trq_gain = 1, conf_kf_mot = 3e-4):
+    def Motor_config(self, loss_mech_C0 = 0.0206, loss_mech_C1 = -2.135e-5, loss_copper_C0 = 0.2034, loss_stray_C0 = 3.352e-6, loss_stray_C1 = -2.612e-9, loss_iron_C0 = 1e-6, loss_iron_C1 = 1.55):
         """Motor parameter configuration
 
         Parameters not specified are declared as default values
@@ -64,15 +65,16 @@ class Motor:
         Args:
             Motor parameter values, default values are setted
         """
-        self.conf_rm_mot = conf_rm
-        self.conf_lm_mot = conf_lm
-        self.conf_kb_mot = conf_kb
-        self.conf_kt_mot = conf_kt
-        self.conf_jm_mot = conf_jm
-        self.conf_trq_gain = conf_trq_gain
-        self.conf_kf_mot = conf_kf_mot
 
-    def Motor_driven(self, v_in = 0, t_load = 0):
+        self.loss_mech_C0 = loss_mech_C0
+        self.loss_mech_C1 = loss_mech_C1
+        self.loss_copper_C0 = loss_copper_C0
+        self.loss_stray_C0 = loss_stray_C0
+        self.loss_stray_C1 = loss_stray_C1
+        self.loss_iron_C0 = loss_iron_C0
+        self.loss_iron_C1 = loss_iron_C1
+
+    def Motor_driven(self, torque_set = 0, w_drivtrain = 0):
         # Elec motor model: Motor torque --> Mech motor model: Motor speed --> Drive shaft model: Load torque
         """Motor driven function
 
@@ -89,99 +91,23 @@ class Motor:
             * w_mot: motor rotational speed [rad/s]
             * t_load: load torque from body model [Nm]
         """
-        self.t_mot = self.Motor_elec_dynamics(self.t_mot, v_in, self.w_mot)
-        self.w_mot = self.Motor_mech_dynamics(self.w_mot, self.t_mot, t_load)
-        self.p_mot = self.Motor_Power_system(self.t_mot,self.w_mot)
-        self.Battery.Calc_Current(self.p_mot)
+        self.t_mot = torque_set
+        self.w_mot = w_drivtrain
+        p_mot_elec = self.Motor_Power_system(self.t_mot,self.w_mot)
+        self.Battery.Calc_Current(p_mot_elec)
         return self.w_mot, self.t_mot
 
-    def Motor_control(self, t_mot_set = 0, t_load = 0):
-        """Function overview here
-
-        Functional description
-
-        Code example wirght follows::
-
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
-            ...
-
-        Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
-
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
-        """
-        self.t_load = t_load
-        v_in = self.Motor_torque_system(t_mot_set, self.t_mot)
-        self.v_mot = v_in
-        self.Motor_driven(v_in, t_load)
-        return [self.w_mot, self.t_mot]
-
-    def Motor_elec_dynamics(self, t_mot, v_in, w_mot):
-        """Function overview here
-
-        Functional description
-
-        Code example wirght follows::
-
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
-            ...
-
-        Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
-
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
-        """
-
-        # Motor torque calculation
-        t_mot = t_mot*(1 - self.conf_rm_mot/self.conf_lm_mot * self.Ts_loc) \
-        + self.Ts_loc*self.conf_kt_mot/self.conf_lm_mot * (v_in - self.conf_kb_mot * w_mot)
-        return t_mot
-
-    def Motor_mech_dynamics(self, w_mot, t_mot, t_load):
-        """Function overview here
-
-        Functional description
-
-        Code example wirght follows::
-
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
-            ...
-
-        Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
-
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
-        """
-
-        # Motor speed calculation
-        w_mot =  w_mot + self.Ts_loc*(t_mot - t_load - self.conf_kf_mot*w_mot)/self.conf_jm_mot
-        return w_mot
-
-    def Motor_torque_system(self, t_mot_des, t_mot):
-        v_in = self.MotController.Control(t_mot_des, t_mot)
-        return v_in
-
     def Motor_Power_system(self, t_mot, w_mot):
-        self.p_mot = t_mot * w_mot
-        return self.p_mot
+        self.p_mot_mech = t_mot * w_mot
+        w_mot = sorted([0,w_mot,10000])[1]
+        self.p_mot_loss = (self.loss_mech_C0 + self.loss_mech_C1*w_mot)*w_mot**2 + self.loss_copper_C0*t_mot + (self.loss_stray_C0+self.loss_stray_C1*w_mot)*w_mot**2*t_mot**2 + self.loss_iron_C0*w_mot**self.loss_iron_C1*t_mot**2
+        self.p_mot_elec = self.p_mot_mech + self.p_mot_loss
+        self.Motor_Elec_system(self.p_mot_elec)
+        return self.p_mot_elec
+
+    def Motor_Elec_system(self, p_mot_elec):
+        self.i_mot = p_mot_elec / self.v_mot
+        return self.i_mot
 
 #%% Battery class
 class Battery:
@@ -206,20 +132,19 @@ class Battery:
         # Calculation state
         self.Voc_rate = 0; # ==> Voc = Voc(norminal) * Voc_rate
         self.Voc = 0
-        self.R_tot = 0
-        self.T_RC1 = 0
-        self.T_RC2 = 0
+        self.V1 = 0
+        self.V2 = 0
         self.Consume_power = 0
         self.Internal_Energy = 0
-        self.Temp=0
         # Output state
         self.Current = 0
         self.V_terminal = 0
         self.SOC = 0
         self.Battery_config()
 
-    def Battery_config(self, Voc=356.0, Etot=230688000.0, MaxPower=150000.0, R0=0.02, SOC_init=70, R1_a=160.4, R1_b=-0.3, R1_c=47.0,
-                       C1_a=-376.45, C1_b=-0.13, C1_c=351.8, R2_a=330.0, R2_b=-1.5, R2_c=49, C2_a=-6056, C2_b=-0.3, C2_c=4472, Int_E=161481600.0):
+    def Battery_config(self, Voc=356.0, Etot=230400000.0, MaxPower=150000.0, R0=0.0016, SOC_init=70, R1_a=76.5218, R1_b=-7.9563, R1_c=23.8375,
+                       C1_a=-649.8350, C1_b=-64.2924, C1_c=12692.1946, R2_a=5.2092, R2_b=-35.2367, R2_c=124.9467, C2_a=-78409.2788,
+                       C2_b=-0.0131, C2_c=30802.62582, Int_E=161280000.0, V1 = 0, V2 = 0):
         self.conf_Voc = Voc
         self.conf_Etot = Etot
         self.conf_MaxPower = MaxPower
@@ -229,11 +154,12 @@ class Battery:
         self.C1_a = C1_a;      self.C1_b = C1_b;       self.C1_c = C1_c
         self.R2_a = R2_a;        self.R2_b = R2_b;        self.R2_c = R2_c;
         self.C2_a = C2_a;        self.C2_b = C2_b;        self.C2_c = C2_c;
+        self.V1 = V1; self.V2 = V2;
         self.Internal_Energy = Int_E
 
     def Calc_Voc_rate(self, input):
-        SOC = [0,     10,     20,     30,     40,     50,     60,     70,     80,     90,     100]
-        Voc_rate = [0.812,  0.9892, 1.0054, 1.0135, 1.0216, 1.0297, 1.0378, 1.0486, 1.0649, 1.0838,  1.1081]
+        SOC = [0, 6.25,  31.25,  62.5,   93.75, 100.00]
+        Voc_rate = [0, 0.625, 0.8125,  0.875,  1.00,   1.0915]
         self.Voc_rate=np.interp(input,SOC,Voc_rate)
         return self.Voc_rate
 
@@ -245,27 +171,26 @@ class Battery:
         self.R2 = self.R2_a * np.exp(self.R2_b * self.SOC) + self.R2_c
         self.C2 = self.C2_a * np.exp(self.C2_b * self.SOC) + self.C2_c
 
-        self.R_tot = self.conf_R0 + 1/np.sqrt((1/self.R1)*(1/self.R1)+(self.C1)*(self.C1)) + 1/np.sqrt((1/self.R2)*(1/self.R2)+(self.C2)*(self.C2))
         self.Consume_power = AccPower + Motor_Net_Power
 
-        self.Temp = self.Voc - np.abs(np.sqrt(self.Voc*self.Voc-4*self.R_tot*self.Consume_power))
-        self.Current = self.Temp / (2 * self.R_tot)
+        self.Current = (self.Voc - np.sqrt(self.Voc**2-4*self.conf_R0*self.Consume_power)) / (2 * self.conf_R0)
         self.Calc_SOC()
         return self.Current
 
     def Calc_SOC(self, ):
-        self.Internal_Energy = self.Internal_Energy - self.Voc * self.Current
+        self.V_terminal = self.Voc - self.Current*self.conf_R0 - self.V1 - self.V2
+        self.V1 = self.V1 + (self.Current/self.C1 - self.V1/(self.R1*self.C1))*Ts
+        self.V2 = self.V2 + (self.Current/self.C2 - self.V2/(self.R2*self.C2))*Ts
+        self.Internal_Energy = self.Internal_Energy - self.Voc * self.Current * Ts
         self.SOC = self.Internal_Energy / self.conf_Etot * 100
-        self.V_terminal = self.Voc - self.Current * self.R_tot
+
         return self.SOC
 
     def Print_States(self,):
-        self.T_RC1 = self.R1 * self.C1
-        self.T_RC2 = self.R2 * self.C2
-        return [self.V_terminal, self.Internal_Energy, self.R_tot, self.Voc]
+        return [self.V_terminal, self.Internal_Energy,  self.Voc]
 
 #%% Powertrain class
-class Mod_PowerTrain():
+class Mod_Power():
     def __init__(self):
         self.ModBattery = Battery()
         self.ModMotor = Motor(self.ModBattery)

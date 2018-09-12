@@ -42,21 +42,22 @@ if __name__== "__main__":
     sys.path.append(conf_dir);
     sys.path.append(test_dir);
     # Import package lib modules
-    from model_powertrain import Mod_PowerTrain
     from model_vehicle import Mod_Veh, Mod_Body
+    from model_powertrain import Mod_Power
     from model_maneuver import Mod_Behavior, Mod_Driver
     from model_environment import Mod_Env
     from sub_type_def import type_DataLog
+    from sub_type_def import type_DataLog
+    from data_roadxy import get_roadxy
     #%% 1. Import models
-     # Powertrain import and configuration
-    kona_power = Mod_PowerTrain()
+    # Powertrain import and configuration
+    kona_power = Mod_Power()
     # ~~~~~
     # Bodymodel import and configuration
-    kona_body = Mod_Body()
-    kona_body.conf_veh_len = 1
+    kona_drivetrain = Mod_Body()
     # ~~~~
     # Vehicle set
-    kona_vehicle = Mod_Veh(kona_power, kona_body)
+    kona_vehicle = Mod_Veh(kona_power, kona_drivetrain)
     # ~~~~
     # Driver model
     drv_kyunghan = Mod_Driver()
@@ -76,73 +77,54 @@ if __name__== "__main__":
     sim_time = 150
     sim_time_range = np.arange(0,sim_time,0.01)
     u_speed_val = np.concatenate((0 * np.ones(int(len(sim_time_range)*0.1)), 20 * np.ones(int(len(sim_time_range)*0.9))))
-
-    # ----------------------------- select input set ---------------------------
-    Input_index = 0
-    if Input_index == 0:
-        # Driver = normal
-        drv_kyunghan.set_char('Normal')
-        beh_steer.Drver_set(drv_kyunghan)
-    elif Input_index == 1:
-        # Driver = aggressive
-        drv_kyunghan.set_char('Aggressive')
-        beh_steer.Drver_set(drv_kyunghan)
-    elif Input_index == 2:
-        # Driver = defensive
-        drv_kyunghan.set_char('Defensive')
-        beh_steer.Drver_set(drv_kyunghan)
-    elif Input_index == 3:
-        # Driver = new driver with config parameter
-        drv_kyuhwan = Mod_Driver()
-        drv_kyuhwan.P_gain_lon = 0.2
-        drv_kyuhwan.I_gain_lon = 0.05
-        drv_kyuhwan.I_gain_lat = 0.0001
-        drv_kyuhwan.P_gain_lat = 0.001
-        drv_kyuhwan.P_gain_yaw = 0.1
-        drv_kyuhwan.I_gain_yaw = 0.1
-        beh_steer.Drver_set(drv_kyuhwan)
-    else:
-        print('입력을 똑바로 하세요 ~_~')
     #%% 3. Run simulation
     # Set logging data
-    sim4 = type_DataLog(['Veh_Vel','Acc_in','Brk_in','Veh_Psi','Steer_in','Wheel_theta','LaneOff','LaneOffDir'])
-    sim4_veh = type_DataLog(['PosX','PosY','VehAn','RoadAn','Andiff'])
-    sim4_str = type_DataLog(['steer_an','steer_off'])
-    tmp_state = []
+    veh_data_sim = type_DataLog(['vel_veh','the_wheel','u_acc','u_brk','u_str'])    
+    veh_state_sim = type_DataLog(['pos_x','pos_y','psi_veh'])
+    # Vehicle initial state
+    vel_veh = kona_vehicle.vel_veh
+    pos_x = kona_vehicle.pos_x_veh
+    pos_y = kona_vehicle.pos_y_veh
+    psi_veh = kona_vehicle.psi_veh
+    
     for sim_step in range(len(sim_time_range)):
-        # Arrange vehicle position
-        pos_x = kona_vehicle.pos_x_veh
-        pos_y = kona_vehicle.pos_y_veh
-        psi_veh = kona_vehicle.psi_veh
-        veh_vel = kona_body.vel_veh
-        # Arrange behavior input
-        u_speed_set = u_speed_val[sim_step]
+        # Arrange behavior input       
+        u_vel_veh_set_in = u_speed_val[sim_step]
         # Behavior control
-        [u_acc_in, u_brk_in] = beh_steer.Lon_control(u_speed_set, veh_vel)
+        u_acc_in, u_brk_in = beh_steer.Lon_control(u_vel_veh_set_in,vel_veh)
         u_steer_in = beh_steer.Lat_behavior(pos_x,pos_y,psi_veh,road_x,road_y)
-        # Vehicle model sim
-        [veh_vel, the_wheel] = kona_vehicle.Veh_driven(u_acc = u_acc_in, u_brake = u_brk_in, u_steer = u_steer_in)
-        [pos_x, pos_y, pos_s, pos_n, psi_veh] = kona_vehicle.Veh_position_update(veh_vel, the_wheel)
-        # Store data
-        sim4.StoreData([veh_vel, u_acc_in, u_brk_in, kona_vehicle.psi_veh, u_steer_in, the_wheel, beh_steer.lane_offset, beh_steer.stLateral.state])
-        sim4_veh.StoreData([pos_x, pos_y, beh_steer.state_veh_an, beh_steer.road_an, beh_steer.psi_offset])
-        sim4_str.StoreData([beh_steer.u_steer_yaw, beh_steer.u_steer_offset])
-        
-        beh_steer.Lon_behavior(env_sl.object_list, pos_s, env_sl.road_len, veh_vel)
-        tmp_state.append(beh_steer.veh_speed_set)
-
-    [sim4_veh_vel, sim4_u_acc, sim4_u_brk, sim4_veh_psi, sim4_steer, sim4_wheel, sim4_laneoff, sim4_laneoff_dir] = sim4.get_profile_value(['Veh_Vel','Acc_in','Brk_in','Veh_Psi','Steer_in','Wheel_theta','LaneOff','LaneOffDir'])
-    [sim4_veh_x, sim4_veh_y, sim4_veh_an, sim4_road_an, sim4_an_diff] = sim4_veh.get_profile_value(['PosX','PosY','VehAn','RoadAn','Andiff'])
-    [sim4_str_an, sim4_str_off] = sim4_str.get_profile_value(['steer_an','steer_off'])
+        # Vehicle driven
+        vel_veh,the_wheel = kona_vehicle.Veh_driven(u_acc_in,u_brk_in,u_steer_in)
+        # Vehicle position update
+        pos_x, pos_y, pos_s, pos_n, psi_veh = kona_vehicle.Veh_position_update(vel_veh,the_wheel)
+        # Data logging        
+        veh_data_sim.StoreData([vel_veh,the_wheel,u_acc_in,u_brk_in,u_steer_in])
+        veh_state_sim.StoreData([pos_x,pos_y,psi_veh])
+    
+    for name_var in veh_state_sim.NameSet:
+        globals()['sim_'+name_var] = veh_state_sim.get_profile_value_one(name_var)
+    for name_var in veh_data_sim.NameSet:
+        globals()['sim_'+name_var] = veh_data_sim.get_profile_value_one(name_var)    
+    
     #%% 4. Result plot
+    
     fig = plt.figure(figsize=(8,4))
     ax1 = plt.subplot(121)
     ax2 = plt.subplot(222)
-    ax3 = plt.subplot(224)
+    ax3 = plt.subplot(224)    
     ax1.plot(road_x,road_y,label = 'Road')
-    ax1.plot(sim4_veh_x, sim4_veh_y,'--',label = 'Vehicle');ax1.set_xlabel('X position [m]');ax1.set_ylabel('Y position [m]')
+    ax1.plot(sim_pos_x, sim_pos_y,'--',label = 'Vehicle');ax1.set_xlabel('X position [m]');ax1.set_ylabel('Y position [m]')
     ax1.legend()
-    ax2.plot(sim_time_range, sim4_laneoff,label = 'Lane off set')
+#    ax2.plot(sim_time_range, sim4_laneoff,label = 'Lane off set')
     ax2.legend()
-    ax3.plot(sim_time_range, sim4_steer,label = 'Str')
+    ax3.plot(sim_time_range, sim_u_str,label = 'Str')
     ax3.legend()
+    
+    fig = plt.figure()
+    ax1 = plt.subplot(311)
+    ax2 = plt.subplot(312)
+    ax3 = plt.subplot(313)  
+    ax1.plot(sim_time_range, sim_vel_veh)
+#    ax1.plot(sim_time_range, u_speed_val)
+    ax1.plot(sim_time_range, u_speed_val)
+    

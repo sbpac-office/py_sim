@@ -93,6 +93,7 @@ class type_DataLog:
         else:
             for i in range(len(self.NameSet)):
                 self.DataProfile[self.NameSet[i]].append(DataSet[i])
+                
     def get_profile_value(self, get_name_set = []):
         if len(get_name_set) == 0:
             get_name_set = self.NameSet
@@ -135,6 +136,30 @@ class type_hyst:
 
     def filt(self,Data):
         return self.filt_dyn(Data,self.CriUp,self.CriLow)
+
+class type_trnsition_delay:
+    def __init__(self, delay_time):
+        self.time_step = 0
+        self.input_old = 0
+        self.Trns_time_step = delay_time / globals()['Ts']
+        self.state_trns = 0
+
+    def filt_delay(self,input_value):        
+        if input_value == self.input_old:
+            self.state_trns = 0
+            self.time_step = 0
+            self.input_old = input_value
+            output_value = input_value
+        else:
+            self.state_trns = 1
+            self.time_step = self.time_step + 1            
+            if self.time_step < self.Trns_time_step:
+                output_value = self.input_old
+            else:
+                output_value = input_value
+                self.input_old = input_value
+                self.time_step = 0
+        return output_value
 #%%  ----- test ground -----
 if __name__ == "__main__":
     # test hysteresis filter

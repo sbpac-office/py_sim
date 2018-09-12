@@ -24,7 +24,7 @@ import sys
 import random
 import pickle
 from keras.layers import Dense
-from keras.optimizers import Adam
+from keras.optimizers import Adam, SGD
 from keras.models import Sequential, load_model
 from keras import backend as K
 # Set initial path
@@ -57,6 +57,8 @@ def int_index(index_set,data_val):
     return index_val, index
 def norm_data(data, val):
     return (data - val[0])/(val[1] - val[0])
+def norm_data_bin(data, val):
+    return ((data - val[0])/(val[1] - val[0]))*2 - 1
 #%%
 class IDM_brake:
     def __init__(self,mod_param):
@@ -97,7 +99,7 @@ class agent:
         self.act_set = act_set
         self.act_len = len(act_set)
         self.st_len = st_len
-        self.set_learnconf(conf_dis = 0.9 , conf_learnrate = 0.3, conf_egreedy = 0.5)                
+        self.set_learnconf(conf_dis = 0.9 , conf_learnrate = 0.3, conf_egreedy = 0.5, conf_qval_lim = [-1000, 300])                
         self.q_model = self.set_q_model(qnet_input_dim = st_len)    
     
     def set_q_model(self, qnet_1st_dim = 40, qnet_2nd_dim = 40, qnet_input_dim = 3):
@@ -105,32 +107,41 @@ class agent:
         model = Sequential()
         model.add(Dense(qnet_1st_dim, input_dim = qnet_input_dim, activation = 'relu'))
         model.add(Dense(qnet_2nd_dim, activation = 'relu'))
-        model.add(Dense(self.act_len, activation='softmax'))
-        model.compile(loss = 'mse', optimizer = Adam(lr = self.conf_learnrate))
+        model.add(Dense(self.act_len, activation='tanh'))
+        model.compile(loss = 'mse', optimizer = SGD(lr = self.conf_learnrate))
         return model
         
     def update_q_model(self, act_index_list, st_vel_list, st_dis_list, st_time_list, reward_list):
         len_st = len(act_index_list) 
         x_data = np.transpose(np.array([st_vel_list, st_dis_list, st_time_list]))
-        q_list_target = self.q_model.predict(x_data)
+#        q_list_predic = self.q_model.predict(x_data)
+        q_list_norm = agent_dqn.q_model.predict(x_data)
+        self.q_predict = q_list_norm
         q_list = np.zeros(len_st)
         q_list[-1] = reward_list[-1]
-        q_list_target[-1, act_index_list[-1]] = q_list_target[-1, act_index_list[-1]] + self.conf_learnrate * q_list[-1]        
+        q_norm =  sorted((-1, norm_data_bin(q_list[-1], self.conf_qval_lim), 1))[1]
+        q_list_target = q_list_norm
+        q_list_target[-1, act_index_list[-1]] = q_list_norm[-1, act_index_list[-1]] + self.conf_learnrate * q_norm        
+#        q_list_target[-1, act_index_list[-1]] = q_list_predic[-1, act_index_list[-1]] + 0.05 * q_list[-1]        
         for step in range(2,len_st+1):
             current_step = len_st - step
             # Calculate q reward -- backward calculation
-            q_list[current_step] = reward_list[current_step] + self.conf_dis * q_list[current_step+1]                        
+            q_list[current_step] = reward_list[current_step] + self.conf_dis * q_list[current_step+1]
+            q_norm = sorted((-1, norm_data_bin(q_list[current_step], self.conf_qval_lim), 1))[1]                        
+#            q_list[current_step] = reward_list[current_step] + 0.995 * q_list[current_step+1]                        
             # Calculate q target for optimize
-            q_list_target[current_step, act_index_list[current_step]] = q_list_target[current_step, act_index_list[current_step]] + self.conf_learnrate * q_list[current_step]
-        # Update model
-        self.q_target = q_list_target        
-        self.q_model.fit(x_data, q_list_target, epochs = 1, verbose = 0)
+            q_list_target[current_step, act_index_list[current_step]] = q_list_norm[current_step, act_index_list[current_step]] + self.conf_learnrate * q_norm
+#            q_list_target[current_step, act_index_list[current_step]] = q_list_predic[current_step, act_index_list[current_step]] + 0.05 * q_list[current_step]
+        # Update model                
+        self.q_target = q_list_target
+        self.q_model.fit(x_data, q_list_target, batch_size = 10, epochs = 1)
         return q_list    
             
-    def set_learnconf(self, conf_dis, conf_learnrate, conf_egreedy):
+    def set_learnconf(self, conf_dis, conf_learnrate, conf_egreedy, conf_qval_lim):
         self.conf_dis = conf_dis
         self.conf_learnrate = conf_learnrate  
         self.conf_egreedy = conf_egreedy
+        self.conf_qval_lim = conf_qval_lim
     
     def e_greedy_policy(self, state_vel, state_dis, state_time):
         rand_prob = random.random()
@@ -154,8 +165,8 @@ class env:
         self.set_r_coef()        
     
     def set_r_coef(self, rc_reg = 10, rc_drv = 1, 
-                   rc_ucd = -3, rc_ucs = 4,  rc_saf_uc = -100, 
-                   rc_ocd = 5, rc_ocs = 16, rc_saf_oc = -50):
+                   rc_ucd = -3, rc_ucs = 4,  rc_saf_uc = -10, 
+                   rc_ocd = 5, rc_ocs = 16, rc_saf_oc = -5):
         self.rc_reg = rc_reg
         self.rc_drv = rc_drv
         self.rc_ucd = rc_ucd
@@ -177,7 +188,7 @@ class env:
         elif data_dis >= over_cri_dis:
             self.r_saf = self.rc_saf_oc
         else:
-            self.r_saf = 1
+            self.r_saf = 0
         return self.r_saf
             
     def get_reward_drv(self, data_brk, data_acc):
@@ -222,9 +233,9 @@ drv_conf = {'coast_off':0,'coast_sl':10}
 
 agent_dqn.conf_learnrate = 0.05
 agent_dqn.conf_dis = 0.995
-e_greedy_config = 0.5
+e_greedy_config = 0.6
 env_brake.rc_reg = 50
-ItNumMax = 10
+ItNumMax = 100
 Learning_result = []
 Learning_control = []
 Learning_qval = []
@@ -238,14 +249,15 @@ lrn_veh = type_DataLog(learn_log_list_veh)
 lrn_drv = type_DataLog(learn_log_list_drv)
 lrn_result = type_DataLog(learn_log_list_result)
 
+LS = []
 for ItNum in range(ItNumMax):
     swt_valid = ItNum%100        
     egreedy_dis_fac = ItNum//10
-    if swt_valid == 0:
-        agent_dqn.conf_egreedy = 0
-        print('============================= validation =================================')        
-    else:
-        agent_dqn.conf_egreedy = e_greedy_config - egreedy_dis_fac/50
+#    if swt_valid == 0:
+#        agent_dqn.conf_egreedy = 0
+#        print('============================= validation =================================')        
+#    else:
+#        agent_dqn.conf_egreedy = e_greedy_config - egreedy_dis_fac/50
     # 3. Import model - set the initial value
     # Powertrain import and configuration
     kona_power = Mod_PowerTrain()
@@ -416,11 +428,17 @@ for ItNum in range(ItNumMax):
         globals()['sim_'+name_var] = sim_data.get_profile_value_one(name_var) 
     for name_var in rl_log_list:
         globals()['rl_'+name_var] = rl_data.get_profile_value_one(name_var)        
+    
     st_vel_list = norm_data(rl_st_vel, vel_index)
     st_dis_list = norm_data(rl_st_dis, dis_index)
     st_time_list = norm_data(rl_st_time, time_index)    
-    q_list = agent_dqn.update_q_model(rl_act_index, st_vel_list, st_dis_list, st_time_list, rl_reward)    
+    act_index_list = rl_act_index
+    reward_list = rl_reward
+    
+    q_list = agent_dqn.update_q_model(act_index_list, st_vel_list, st_dis_list, st_time_list, reward_list)    
+    
     Learning_score = np.array((np.mean(np.array(rl_reward)),np.mean(np.array(rl_r_drv)),np.mean(np.array(rl_r_reg)),np.mean(np.array(rl_r_saf))))
+    LS.append(Learning_score)
     print('=== LS:',Learning_score,' , IN:', ItNum,'===')
     
     # Log data
@@ -433,11 +451,15 @@ for ItNum in range(ItNumMax):
         lrn_result.StoreData([q_list, rl_act, rl_r_drv, rl_r_reg, rl_r_saf,rl_step])
 #        with open('q_table.p','ab') as file:
 #            pickle.dump(agent_dqn.q_model, file)
+        
 with open('lrn_result.p','wb') as file:
     pickle.dump(lrn_veh,file)
     pickle.dump(lrn_drv,file)
     pickle.dump(lrn_result,file)   
-#%%       
+#%%      
+q_prd = agent_dqn.q_predict    
+q_target = agent_dqn.q_target
+q_norm = norm_data_bin(q_list,[-1000,300])
 fig = plt.figure(figsize=(6,5))
 ax1 = plt.subplot(421)
 ax2 = plt.subplot(422)
@@ -449,7 +471,9 @@ ax7 = plt.subplot(427)
 ax8 = plt.subplot(428)
 ax1.plot(sim_time_range, sim_veh_vel)
 ax1.plot(sim_time_range, sim_vel_set)
-
+ax2.plot(q_prd)
+ax2.plot(q_target)
+ax2.plot(q_list)
 ax3.plot(sim_time_range, sim_acc_in)
 ax3.plot(sim_time_range, sim_brk_in)
 ax3.plot(sim_time_range, sim_acc_set)

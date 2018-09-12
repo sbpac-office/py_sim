@@ -186,4 +186,110 @@ class Mod_Env:
 
 #%%  ----- test ground -----
 if __name__ == "__main__":
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import scipy.io as io
+    import os
+    import sys
+    # Set initial path
+    base_dir = os.path.abspath('.')
+    data_dir = os.path.abspath('.\data_roadxy')
+    conf_dir = os.path.abspath('.\data_config')
+    test_dir = os.path.abspath('.\sim_test')
+    print('Base directory: ', base_dir)
+    sys.path.append(base_dir);
+    sys.path.append(data_dir);
+    sys.path.append(conf_dir);
+    sys.path.append(test_dir);
+    
+    from model_powertrain import Mod_Power
+    from model_vehicle import Mod_Veh, Mod_Body    
+    from model_maneuver import Mod_Behavior, Mod_Driver    
+    from sub_type_def import type_DataLog
+    from data_roadxy import get_roadxy
+    from sub_utilities import Filt_LowPass
+    #%% Import model
+    drv_kyunghan = Mod_Driver()
+    # Behavior model
+    beh_driving = Mod_Behavior(drv_kyunghan)
+    
+    get_roadxy.set_dir(data_dir)
+    RoadData = get_roadxy.load_mat('road_data_amsa.mat')
+    road_x = np.reshape(RoadData['sn_X'],max(np.shape(RoadData['sn_X'])))
+    road_y = np.reshape(RoadData['sn_Y'],max(np.shape(RoadData['sn_X'])))
+    plt.figure()
+    plt.plot(road_x,road_y)
+    plt.axis('equal')
+    plt.title('Road data')
+    # Environment set
+    env_st = Mod_Env(road_x,road_y)
+    # Set initial vehicle state at environment
+    road_env_obj = env_st.object_list
+    road_env_road_len = env_st.road_len
+    
+    road_index_len = len(road_env_obj)
+    
+    beh_driving.conf_cruise_speed_set = 22
+    veh_road_len = []
+    veh_vel_set_mod = []
+    
+    st_state_sim = []
+    
+    for road_index in range(road_index_len-200):
+        veh_pos_s = road_env_road_len[road_index] + 2
+        veh_road_len.append(veh_pos_s)
+        cur_road_obj = road_env_obj[road_index]
+        cur_object_class = cur_road_obj.object_class
+        cur_object_loc_s = cur_road_obj.object_loc_s
+        cur_object_param = cur_road_obj.object_param        
+        stStatic = beh_driving.Static_state_recog(road_env_obj, veh_pos_s, road_env_road_len)  
+        st_state_sim.append(stStatic.state)
+        stDynamic = beh_driving.Dynamic_state_recog(100,200)
+        veh_vel_set = beh_driving.Lon_vel_set(stStatic,stDynamic)
+        veh_vel_set_mod.append(veh_vel_set)
+    #%% Set lon velocity    
+    os.chdir('data_vehmodel')
+    veh_data = io.loadmat('amsa_speed_set.mat')
+    os.chdir('..')
+    veh_data_roadlen = veh_data['road_len_amsa']
+    veh_data_vel = veh_data['veh_speed_amsa']
+    
+    stStaticList = beh_driving.stStaticList
+    
+    veh_set_cruise = 22
+    veh_set_curve_radcoeff = 1000
+    veh_set_curve_discoeff = 0.01
+    
+    veh_set = 0    
+    veh_set_filt = 0
+    vel_set_filtnum = 40
+    loc_Ts = 1
+    
+    veh_set_array = []
+    veh_set_filt_array = []
+    for obj_index in range(len(stStaticList.state)):
+        cur_state = stStaticList.state[obj_index]
+        cur_param = stStaticList.state_param[obj_index]
+        cur_reldis = stStaticList.state_reldis[obj_index]
+        if cur_state == 'Curve':
+            veh_set = veh_set_cruise - cur_param*veh_set_curve_radcoeff + cur_reldis*veh_set_curve_discoeff
+        elif cur_state == 'Cruise': 
+            veh_set = veh_set_cruise
+        veh_set_filt = Filt_LowPass(veh_set,veh_set_filt,vel_set_filtnum, loc_Ts)
+        veh_set_array.append(veh_set)
+        veh_set_filt_array.append(veh_set_filt)
+        beh_driving.Lon_vel_set
+    
+    fig = plt.figure()
+    ax1 = fig.add_subplot(2,1,1)
+    ax2 = fig.add_subplot(2,1,2)
+    ax1.plot(veh_data_roadlen,veh_data_vel)
+    ax1.plot(veh_road_len,veh_set_array)
+    ax1.plot(veh_road_len,veh_set_filt_array)
+    ax1.plot(veh_road_len,veh_vel_set_mod)
+    
     pass
+    
+
+
+

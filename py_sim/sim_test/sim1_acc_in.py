@@ -38,18 +38,17 @@ if __name__== "__main__":
     sys.path.append(conf_dir);
     sys.path.append(test_dir);
     from model_vehicle import Mod_Veh, Mod_Body
-    from model_powertrain import Mod_PowerTrain
+    from model_powertrain import Mod_Power
     from model_maneuver import Mod_Behavior, Mod_Driver
     from model_environment import Mod_Env
     from sub_type_def import type_DataLog
     #%% 1. Import models
     # Powertrain import and configuration
-    kona_power = Mod_PowerTrain()
+    kona_power = Mod_Power()
     #%%
     # ~~~~~
     # Bodymodel import and configuration
-    kona_body = Mod_Body()
-    kona_body.Dyn_config(10)
+    kona_body = Mod_Body()    
     # ~~~~
     # Vehicle set
     kona_vehicle = Mod_Veh(kona_power, kona_body)
@@ -60,7 +59,7 @@ if __name__== "__main__":
     sim_time_range = np.arange(0,sim_time,0.01)
 
     # ----------------------------- select input set ---------------------------
-    Input_index = 0
+    Input_index = 2
     if Input_index == 0:
     # Go straight : Input_index = 0
         u_acc_val = np.concatenate((0 * np.ones(int(len(sim_time_range)*0.1)), 0.3 * np.ones(int(len(sim_time_range)*0.9))))
@@ -79,6 +78,7 @@ if __name__== "__main__":
     #%% 3. Run simulation
     # Set logging data
     sim1 = type_DataLog(['Veh_Vel','Pos_X','Pos_Y','Acc_Set','Brk_Set'])
+    w_veh_deb = []
     for sim_step in range(len(sim_time_range)):
         # Arrange vehicle input
         u_acc_in = u_acc_val[sim_step]
@@ -88,6 +88,7 @@ if __name__== "__main__":
         [pos_x, pos_y, pos_s, pos_n, psi_veh] = kona_vehicle.Veh_position_update(veh_vel, the_wheel)
         # Store data
         sim1.StoreData([veh_vel, pos_x, pos_y, u_acc_in, u_brk_in])
+        w_veh_deb.append(kona_vehicle.ModDrive.w_vehicle)
 
     [sim1_veh_vel, sim1_pos_x, sim1_pos_y, sim1_u_acc, sim1_u_brk] = sim1.get_profile_value(['Veh_Vel','Pos_X','Pos_Y','Acc_Set','Brk_Set'])
     #%% 4. Result plot
